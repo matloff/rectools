@@ -14,7 +14,7 @@ Calculates predicted ratings using nearest neighbors method (distance between gi
 }
 
 \arguments{
-  \item{origData}{the training set data (output of \code{findUserData}}
+  \item{origData}{the training set data (object \code{usrData}, output of \code{findUserData})}
   \item{newData}{the single data point to be predicted (later will be expanded to include multiple data points) (this is an object of class \code{usrDatum}, same class as each element of the list\code{origData}. The \code{userID} component can be \code{NA}}
   \item{newItem}{the id of the rating item to predict for the user specified in \code{newData}}
   \item{k}{the number of nearest neighbors to include in prediction calculations, interpretted as a vector}
