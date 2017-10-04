@@ -89,37 +89,49 @@ predict.usrData <- function(origData, newData, newItem, k,
   sapply(k, findKNeighborRating)
 }
 
-#'find cosine distance between x and y, elements of an object
-#' of 'usrData' class
+########################## cosDist() function ##########################
+#' @title determine inner product distance between x and y elements of 'usrData'
 #'
-#'  \code{cosDist} find cosine distance between x and y, elements of an object
-#'   of 'usrData' class; only items rated in both x and y are used; if none
-#'   exist, then return NaN
-#'   @x: object of usrData class
-#'   @y: second object of usrData class
-#'  @wtcovs: weight to put on covariates; NULL if no covs
-#'  @wtcats: weight to put on item categories; NULL if no cats
+#' finds the cosine distance between x and y, elements of an instance of
+#' the \code{usrData} class.  Only items rated in both x and y are used
+#' if no such items exist, then returns NaN
+#' 
+#' @param x: first given object of the \code{usrData} class
+#' @param y: second given object of the \code{usrData} class
+#' @wtcovs: weight to put on covariates; NULL if no covs
+#' @wtcats: weight to put on item categories; NULL if no cats
 cosDist <- function(x,y,wtcovs,wtcats) {
-  # rated items in common
-   commItms <- intersect(x$itms,y$itms)
-   if (is.null(commItms)| length(commItms)==0) return(NaN)
-   # where are they in x and y?
-   xwhere <- which(!is.na(match(x$itms,commItms)))
-   ywhere <- which(!is.na(match(y$itms,commItms)))
-   xrats <- x$ratings[xwhere]
-   yrats <- y$ratings[ywhere]
-   cosTot <- xrats %*% yrats
-   xl2 <- sum(xrats^2)
-   yl2 <- sum(yrats^2)
-   if (!is.null(wtcovs)) {
-      cosTot <- cosTot + wtcovs * x$cvrs %*% y$cvrs
-      xl2 <- xl2 + sum((wtcovs*x$cvrs)^2)
-      yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
-   }
-   if (!is.null(wtcats)) {
-      cosTot <- cosTot + wtcats * x$cats %*% t(y$cats)
-      xl2 <- xl2 + sum((wtcovs*x$cats)^2)
-      yl2 <- yl2 + sum((wtcovs*y$cats)^2)
-   }
-   cosTot / sqrt(xl2 * yl2)
+  
+  # determine the rated items in common with x and y, and if non, return NaN
+  commonItems <- intersect(x$itms,y$itms)
+  if (is.null(commonItems)| length(commonItems)==0) return(NaN)
+   
+  # disover the locations of the common items within x and y
+  xCommonLocations <- which(!is.na(match(x$itms, commonItems)))
+  yCommonLocations <- which(!is.na(match(y$itms, commonItems)))
+  
+  xRatings <- x$ratings[xCommonLocations]
+  yRatings <- y$ratings[yCommonLocations]
+  
+  # determine total inner products
+  cosineTotal <- xRatings %*% yRatings
+  xl2 <- sum(xRatings^2)
+  yl2 <- sum(yRatings^2)
+  
+  # apply covariate and categorical weights
+  if(!is.null(wtcovs)) {
+    
+    # should this be using the transpose like category data? (Joey)
+    cosineTotal <- cosineTotal + wtcovs * x$cvrs %*% y$cvrs 
+    xl2 <- xl2 + sum((wtcovs*x$cvrs)^2)
+    yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
+  }
+  
+  if(!is.null(wtcats)) {
+    cosineTotal <- cosineTotal + wtcats * x$cats %*% t(y$cats)
+    xl2 <- xl2 + sum((wtcats*x$cats)^2)
+    yl2 <- yl2 + sum((wtcats*y$cats)^2)
+  }
+  
+  cosineTotal / sqrt(xl2 * yl2)
 }
