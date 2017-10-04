@@ -1,90 +1,92 @@
 
 ########################## predict() function ##########################
-
-
-#'  @title predict newData argument from origData argument
+#' @title predict newData argument from origData argument
 #'
-#'  rating prediction via nearest neighbors, via "cosine" (inner product);
-#'  the latter, though standard, has certain problems (e.g., its
-#'  scale-free nature), and other choices for distance measure will be added.
-#'  covariates (e.g. age, gender) and item type preferences (e.g.
-#'  preferred movie genres) are allowed
+#' Calculates predicted ratings using nearest neighbors methods using 
+#' cosDist (the cosine, or inner product, distance) between user 
+#' ratings that are given. Can be improved upon using user covariate 
+#' information (demographics, e.g. age, gender) and item category type 
+#' preferences (e.g. movie genres), whose influence weights are supplied
+#' as optional arguments if desired.
 #'
-#' @param origData: training set, object of class 'usrData' (see file findUsrItmData.R)
-#' @param newData: data point (just one for now) to be predicted, object of class 'usrDatum'
-#' @param newItem: ID of the item rating to be predicted for the user in newData
-#' @param wtcovs: weight to put on covariates; NULL if no covs
-#' @param wtcats: weight to put on item categories; NULL if no cats
-#' @k: a vector of the numbers of nearest neigbhors used for predicting
+#' @param origData: the training set data (object of class 'usrData' - see file
+#'                  findUsrItemData.R)
+#' @param newData: the data point to be predicted (just a single datum for now, 
+#'                 object of class 'usrDatum')
+#' @param newItem: the id of the rating item to predict for the user specified 
+#'                 in newData
+#' @param k: the number of nearest neighbors to include in prediction
+#' @param wtcovs: the weight to put on covariates; NULL if no covs
+#' @param wtcats: the weight to put on item categories; NULL if no cats
 #'
-#' @return predicted ratings for newData
+#' @return the predicted ratings for newData
 
-
-predict.usrData <- function(origData,newData,newItem,
-      k,wtcovs=NULL,wtcats=NULL) {
-
-   ### # return NA if newData is NULL (no ratings provided for the rater)
-   ### if (is.na(newData)) return(NA)
-
-   # we need to narrow origData down to the users who have rated newItem
+predict.usrData <- function(origData, newData, newItem, k, 
+                            wtcovs=NULL, wtcats=NULL) {
+  
+  # start by narrowing origData down to users who have rated the identified item
+  
+  # checkNewItem(oneUser) : take a single user record (oneUser) from origData
+  #                        and search for a j such that element j in
+  #                        in the items list for oneUsr matches newItem.
+  #   if such a j exists, then (j, rating) will be returned,
+  #   otherwise, (NA, NA) will be returned.
+  # This is defined for use in sapply upon origData, to narrow it down
+  checkNewItem <- function(oneUser) {
+    tmp <- match(oneUser$itms, newItem)
+    if(all(is.na(tmp))) {
+      c(NA, NA)
+    } else {
+      whichOne <- which(!is.na(tmp))
+      c(whichOne, oneUser$ratings[whichOne])
+    }
+  }
+  found <- as.matrix(sapply(origData, checkNewItem))
+  
+  # found is of dimensions: 2, number of users
+  # found[1,i] = j means origData[[i]]$itms[j] = newItem
+  # found[1,i] = NA means newItem wasn't rated by user i
+  # found[2,i] will be the rating in the non-NA case
+  
+  # we need to get rid of the NA users
+  ratedUserIndexes <- which(!is.na(found[1,]))
+  # ratedUserIndexes[i] is the index, i.e. user ID, 
+  #                     of the i-th user who has rated newData
    
-   # action of checkNewItem(): here oneUsr is one user record in
-   # origData; the function will look for a j such that element j in the
-   # items list for this user matches the item of interest, newItem; if
-   # such a j exists, then (j,rating) will be returned, otherwise
-   # (NA,NA); defined for use by sapply() below
-   checkNewItem <- function(oneUsr) {
-     tmp <- match(oneUsr$itms, newItem)
-     #message(oneUsr)
-     if (all(is.na(tmp))) {
-       c(NA,NA)
-     }
-     else{
-       whichOne <- which(!is.na(tmp))
-       ### NM comment c(whichOne,oneUsr$ratings[whichOne,1])
-       c(whichOne,oneUsr$ratings[whichOne])
-     }
-   }
+  # we cannot perform nearest neighbor predictions about this item's rating
+  # for a given user if no other users have rated it
+  if (is.null(ratedUserIndexes) | length(ratedUserIndexes) == 0) {
+    return(NA) # results are non-applicable to an unrated item
+  }
 
-   found <- as.matrix(sapply(origData,checkNewItem))
-   # found is of dimensions 2 x number of users;
-   # found[1,i] = j means origData[[i]]$itms[j] = newItem;
-   # found[1,i] = NA means newItem wasn't rated by user i;ß
-   # found[2,i] will be the rating in the non-NA case
-   
-   # we need to get rid of the NA users
-   whoHasIt <- which(!is.na(found[1,]))
-   # whoHasIt[i] is the index, i.e. user ID, of the i-th user who has
-   # rated newData
-   
-   if (is.null(whoHasIt) | length(whoHasIt) == 0) 
-      return(NA)  # no one rated this item
+  # remove all non-relavent users from origData, leaving
+  # only the ones who have rated the item in question
+  origData <- origData[ratedUserIndexes]
+  
+  # remove the na items from the found matrix
+  found <- found[,ratedUserIndexes,drop=FALSE]
 
-   origData <- origData[whoHasIt]
-   # now origData only has the relevant users, the ones who have rated
-   # newItem, so select only those columns of the found matrix
-   found <- found[,whoHasIt,drop=FALSE]
-   #found <- found[!is.na(found)]
+  # oneUserCosDist(oneUser) : distance from newData to oneUser of origData 
+  #   uses cosine (inner product) distance for calculation
+  # defined for use in sapply() below
+  oneUserCosDist <- function(oneUser) cosDist(newData,oneUser,wtcovs,wtcats)
+  
+  # compile the distances from newData to all original data points in a vector
+  cosines <- sapply(origData,oneUserCosDist)
 
-   # find the distance from newData to one user y of origData; defined for
-   # use in sapply() below
-   onecos <- function(y) cosDist(newData,y,wtcovs,wtcats)
-   cosines <- sapply(origData,onecos)
-   # the vector cosines contains the distances from newData to all the
-   # original data points
-
-   # action of findKnghbourRtng(): predict rating based on each k[i] neighbours
-   # x = k[i]
-   # if x > neighbours present in the dataset, then the maximum 
-   # number of neighbours is used
-   findKnghbourRtng <- function(x){
-     # x can be at most the number of neighbours in the dataset
-     x <- min(x, length(cosines))
-     # klarge is a vector containing the indices of the x closest neighbours
-     klarge <- order(cosines,decreasing=TRUE)[1:x]
-     mean(as.numeric(found[2, klarge]))
-   }
-   sapply(k, findKnghbourRtng)
+  # findKNeighborRating : predict rating of user based on each of k[i] neighbors
+  #                       uses the maximum number of neighbors available if
+  #                       any k[i] is larger than the number of possible
+  #                       neighbors, sorted by distance (nearest first)
+  # used with the sapply to find the expected rating by mean of predictions
+  findKNeighborRating <- function(count) {
+    count <- min(count, length(cosines))
+    klarge <- order(cosines, decreasing=TRUE)[1:count]
+    mean(as.numeric(found[2, klarge]))
+  }
+  
+  # the nearest neighbor rating mean for all k, i.e. our prediction
+  sapply(k, findKNeighborRating)
 }
 
 #'find cosine distance between x and y, elements of an object
