@@ -1,70 +1,92 @@
 
-########################## predict() function ##########################
+# nearest neighbor prediction via "cosine" method
 
+# covariates (e.g. age, gender) and item type preferences (e.g.
+# preferred movie genres) are allowed in distance computation for
+# neighbors
 
-#'  @title predict newData argument from origData argument
-#'
-#'  rating prediction via nearest neighbors, via "cosine" (inner product);
-#'  the latter, though standard, has certain problems (e.g., its
-#'  scale-free nature), and other choices for distance measure will be added.
-#'  covariates (e.g. age, gender) and item type preferences (e.g.
-#'  preferred movie genres) are allowed
-#'
-#' @param origData: training set, object of class 'usrData' (see file findUsrItmData.R)
-#' @param newData: data point (just one for now) to be predicted, object of class 'usrDatum'
-#' @param newItem: ID of the item rating to be predicted for the user in newData
-#' @param wtcovs: weight to put on covariates; NULL if no covs
-#' @param wtcats: weight to put on item categories; NULL if no cats
-#' @k: a vector of the numbers of nearest neigbhors used for predicting
-#'
-#' @return predicted ratings for newData
+# note:  the cosine, though standard, has certain problems; e.g., its
+# scale-free nature means two users are very "close" even if one is
+# almost exactly double the other; other choices for distance measure
+# will be added
+
+# arguments:
+
+#    origData: training set, object of class 'usrData', a list of
+#              objects of class 'usrDatum' (see file findUsrItmData.R)
+#    newData: data point (just one in current code) to be predicted, 
+#             object of class 'usrDatum'
+#    newItem: ID of the item rating to be predicted for the 
+#             user in newData
+#    wtcovs: weight to put on covariates; NULL if no covs
+#    wtcats: weight to put on item categories; NULL if no cats
+#    k: a vector of the numbers of nearest neigbhors used for
+#       predicting; one predicted rating will be calculated for
+#       each k
+
+# value:
+
+#    predicted ratings for newData
 
 
 predict.usrData <- function(origData,newData,newItem,
       k,wtcovs=NULL,wtcats=NULL) {
 
-   ### # return NA if newData is NULL (no ratings provided for the rater)
-   ### if (is.na(newData)) return(NA)
+   # check that newData has the covs and cats if and only if the
+   # training data did
+   traincovs <- !is.null(origData$usrCovs)
+   newcovs <- !is.null(newData$cvrs)
+   if (!(traincovs + newcovs %in% c(0,2)))
+      stop('mismatch in having/not having covars, orig and new data')
+   traincats <- !is.null(origData$usrCats)
+   newcats <- !is.null(newData$cats)
+   if (!(traincats + newcats %in% c(0,2)))
+      stop('mismatch in having/not having cats, orig and new data')
 
-   # we need to narrow origData down to the users who have rated newItem
+   # we first need to narrow origData down to the users who 
+   # have rated newItem
    
    # action of checkNewItem(): here oneUsr is one user record in
    # origData; the function will look for a j such that element j in the
    # items list for this user matches the item of interest, newItem; if
    # such a j exists, then (j,rating) will be returned, otherwise
    # (NA,NA); defined for use by sapply() below
+   ###   checkNewItem <- function(oneUsr) {
+   ###     tmp <- match(oneUsr$itms, newItem)
+   ###     if (all(is.na(tmp))) {
+   ###       c(NA,NA)
+   ###     }
+   ###     else{
+   ###       whichOne <- which(!is.na(tmp))
+   ###       c(whichOne,oneUsr$ratings[whichOne])
+   ###     }
+   ###   }
+   # NM refactor, 10/18/17
    checkNewItem <- function(oneUsr) {
-     tmp <- match(oneUsr$itms, newItem)
-     #message(oneUsr)
-     if (all(is.na(tmp))) {
-       c(NA,NA)
-     }
-     else{
-       whichOne <- which(!is.na(tmp))
-       ### NM comment c(whichOne,oneUsr$ratings[whichOne,1])
-       c(whichOne,oneUsr$ratings[whichOne])
-     }
+      whichOne <- which(oneUsr$itms == newItem)
+      if (length(whichOne) == 0) {
+         return(c(NA,NA))
+      }
+      else return(c(whichOne,oneUsr$ratings[whichOne]))
    }
 
    found <- as.matrix(sapply(origData,checkNewItem))
-   # found is of dimensions 2 x number of users;
+   # description of 'found':
+   # found is of dimensions 2 x number of users in training set
    # found[1,i] = j means origData[[i]]$itms[j] = newItem;
-   # found[1,i] = NA means newItem wasn't rated by user i;ß
-   # found[2,i] will be the rating in the non-NA case
+   # found[1,i] = NA means newItem wasn't rated by user i
+   # found[2,i] = rating in the non-NA case
    
-   # we need to get rid of the NA users
+   # we need to get rid of the users who didn't rate newItem
    whoHasIt <- which(!is.na(found[1,]))
    # whoHasIt[i] is the index, i.e. user ID, of the i-th user who has
    # rated newData
-   
    if (is.null(whoHasIt) | length(whoHasIt) == 0) 
       return(NA)  # no one rated this item
-
    origData <- origData[whoHasIt]
    # now origData only has the relevant users, the ones who have rated
    # newItem, so select only those columns of the found matrix
    found <- found[,whoHasIt,drop=FALSE]
-   #found <- found[!is.na(found)]
 
    # find the distance from newData to one user y of origData; defined for
    # use in sapply() below
