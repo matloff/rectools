@@ -83,27 +83,27 @@ predict.usrData <- function(origData,newData,newItem,
    # rated newData
    if (is.null(whoHasIt) | length(whoHasIt) == 0) 
       return(NA)  # no one rated this item
-   origData <- origData[whoHasIt]
-   # now origData only has the relevant users, the ones who have rated
-   # newItem, so select only those columns of the found matrix
+   origDataRatedNI <- origData[whoHasIt]
+   # now origDataRatedNI only has the relevant users, the ones who 
+   # have rated newItem, so select only those columns of the found matrix
    found <- found[,whoHasIt,drop=FALSE]
 
    # find the distance from newData to one user y of origData; defined for
    # use in sapply() below
    onecos <- function(y) cosDist(newData,y,wtcovs,wtcats)
-   cosines <- sapply(origData,onecos)
+   cosines <- sapply(origDataRatedNI,onecos)
    # the vector cosines contains the distances from newData to all the
-   # original data points
+   # original data points who rated newItem
 
-   # action of findKnghbourRtng(): predict rating based on each k[i] neighbours
-   # x = k[i]
-   # if x > neighbours present in the dataset, then the maximum 
+   # action of findKnghbourRtng(): find the mean rating of newItem in
+   # origDataRatedNI, for ki (= k[i]) neighbors
+   #
+   # if ki > neighbours present in the dataset, then the 
    # number of neighbours is used
-   findKnghbourRtng <- function(x){
-     # x can be at most the number of neighbours in the dataset
-     x <- min(x, length(cosines))
-     # klarge is a vector containing the indices of the x closest neighbours
-     klarge <- order(cosines,decreasing=TRUE)[1:x]
+   findKnghbourRtng <- function(ki){
+     ki <- min(ki, length(cosines))
+     # klarge is a vector containing the indices of the ki closest neighbours
+     klarge <- order(cosines,decreasing=TRUE)[1:ki]
      mean(as.numeric(found[2, klarge]))
    }
    sapply(k, findKnghbourRtng)
