@@ -1,0 +1,59 @@
+
+overview of code files:
+
+CovNMF.R:
+
+   Incorporates covariates ("biases," in rec sys lit) to NMF analysis.
+
+FocusGrp.R:
+
+   Finds "representative" users, i.e. the users whose ratings correlate
+   # the highest with the average ratings of the items they rate
+
+Plot.R:
+
+   Various plots of the estimated alpha_i and beta_j.
+
+Utilities.R:
+
+   E.g. a function that finds and returns the number of ratings for each
+   user.
+
+buildMatrix.R:
+
+   Build the (incomplete) users x ratings matrix from the raw data of
+   the form of (userID,itemID,rating) in each row.
+
+cosine.R:
+
+   Rating prediction via nearest neighbors, "cosine" (inner
+   product).  Requires object of class 'usrData', generated in file
+   findUsrItmData.R.
+
+findUsrItmData.R:
+
+   See cosine.R above.  May be of independent use.
+
+findYdotsMLE.R:
+
+   Finds the Y.., Yi. and Y.j values for random effects model; can
+   predict from these.  Estimates come from MLE.
+
+findYdtsMM.R:
+
+   Same as findYdotsMLE.R except that Method of Moments is used.
+
+hybrid.R:
+
+   Predict using the k nearest neighbor from the "basis" of the
+   user-space generated from NMF.
+
+onAttach.R:
+
+   Standard R mechanism for generating upo-load greeting.
+
+xvalCos.R, xvalMLE.R, xvalMM.R, xvalReco.R:
+
+   Cross-validation of the various methods, 'Reco' referring to NMF via
+   the 'recosystem' package.
+
