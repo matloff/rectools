@@ -125,20 +125,19 @@ cosDist <- function(x,y,wtcovs,wtcats) {
    # where are those common items in x and y?
    xwhere <- which(!is.na(match(x$itms,commItms)))
    ywhere <- which(!is.na(match(y$itms,commItms)))
-   xrats <- x$ratings[xwhere]
-   yrats <- y$ratings[ywhere]
-   cosTot <- xrats %*% yrats
-   xl2 <- sum(xrats^2)
-   yl2 <- sum(yrats^2)
+   xvec <- x$ratings[xwhere]
+   yvec <- y$ratings[ywhere]
    if (!is.null(wtcovs)) {
-      cosTot <- cosTot + wtcovs * x$cvrs %*% y$cvrs
-      xl2 <- xl2 + sum((wtcovs*x$cvrs)^2)
-      yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
+      xvec <- c(xvec,wtcovs*x$cvrs)
+      yvec <- c(yvec,wtcovs*y$cvrs)
    }
    if (!is.null(wtcats)) {
-      cosTot <- cosTot + wtcats * x$cats %*% y$cats
-      xl2 <- xl2 + sum((wtcovs*x$cats)^2)
-      yl2 <- yl2 + sum((wtcovs*y$cats)^2)
+      xvec <- c(xvec,wtcovs*x$cats)
+      yvec <- c(yvec,wtcovs*y$cats)
    }
-   cosTot / sqrt(xl2 * yl2)
+
+   xvec %*% yvec / (l2(xvec) * l2(yvec))
 }
+
+l2 <- function(x) sqrt(x %*% x)
+
