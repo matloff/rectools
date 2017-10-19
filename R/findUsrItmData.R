@@ -51,7 +51,7 @@ formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
    # rownums[[i]] will be the row numbers in ratingsIn belonging to user i
    rownums <- split(1:nrow(ratingsIn),ratingsIn[,1])
    nusers <- length(rownums)
-   nitems <- length(unique(ratingsIn[,2])))
+   nitems <- length(unique(ratingsIn[,2]))
 
    if (!is.null(itmCats)) {
       # must convert from a data frame row to a numeric vector
