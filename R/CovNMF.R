@@ -34,7 +34,7 @@ getPreds <- function(narrowrat) {
 
 getNMF <- function(narrowrat,k) {
    require(NMF)
-   a <- buildMatrix(narrowrat)
+   a <- buildMatrix(narrowrat,0)  # 0s for missing entries
    nmfout <- nmf(a,k)
    w <- nmfout@fit@W
    h <- nmfout@fit@H
