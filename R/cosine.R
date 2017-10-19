@@ -103,7 +103,7 @@ predict.usrData <- function(origData,newData,newItem,
    findKnghbourRtng <- function(ki){
      ki <- min(ki, length(cosines))
      # klarge is a vector containing the indices of the ki closest neighbours
-     klarge <- order(cosines,decreasing=TRUE)[1:ki]
+     klarge <- order(cosines,decreasing=FALSE)[1:ki]
      mean(as.numeric(found[2, klarge]))
    }
    sapply(k, findKnghbourRtng)
