@@ -102,28 +102,27 @@ predict.usrData <- function(origData,newData,newItem,
    # number of neighbours is used
    findKnghbourRtng <- function(ki){
      ki <- min(ki, length(cosines))
-     # klarge is a vector containing the indices of the ki closest neighbours
-     klarge <- order(cosines,decreasing=FALSE)[1:ki]
-     mean(as.numeric(found[2, klarge]))
+     # nearby is a vector containing the indices of the ki closest neighbours
+     nearby <- order(cosines,decreasing=FALSE)[1:ki]
+     mean(as.numeric(found[2, nearby]))
    }
    sapply(k, findKnghbourRtng)
 }
 
-#'find cosine distance between x and y, elements of an object
-#' of 'usrData' class
-#'
-#'  \code{cosDist} find cosine distance between x and y, elements of an object
-#'   of 'usrData' class; only items rated in both x and y are used; if none
-#'   exist, then return NaN
-#'   @x: object of usrData class
-#'   @y: second object of usrData class
-#'  @wtcovs: weight to put on covariates; NULL if no covs
-#'  @wtcats: weight to put on item categories; NULL if no cats
+# find cosine distance between x and y, elements of an object
+# of 'usrData' class
+#
+# only items rated in both x and y are used; if none
+# exist, then return NaN
+#
+#  wtcovs: weight to put on covariates; NULL if no covs
+#  wtcats: weight to put on item categories; NULL if no cats
+
 cosDist <- function(x,y,wtcovs,wtcats) {
-  # rated items in common
+   # rated items in common
    commItms <- intersect(x$itms,y$itms)
-   if (is.null(commItms)| length(commItms)==0) return(NaN)
-   # where are they in x and y?
+   if (length(commItms)==0) return(NaN)
+   # where are those common items in x and y?
    xwhere <- which(!is.na(match(x$itms,commItms)))
    ywhere <- which(!is.na(match(y$itms,commItms)))
    xrats <- x$ratings[xwhere]
@@ -137,7 +136,7 @@ cosDist <- function(x,y,wtcovs,wtcats) {
       yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
    }
    if (!is.null(wtcats)) {
-      cosTot <- cosTot + wtcats * x$cats %*% t(y$cats)
+      cosTot <- cosTot + wtcats * x$cats %*% y$cats
       xl2 <- xl2 + sum((wtcovs*x$cats)^2)
       yl2 <- yl2 + sum((wtcovs*y$cats)^2)
    }
