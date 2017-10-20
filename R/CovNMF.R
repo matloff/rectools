@@ -36,9 +36,10 @@ getPreds <- function(narrowrat) {
 # of 0s
 
 getNMF <- function(narrowrat,k) {
+   stop('not usable for now')
    require(NMF)
    a <- buildMatrix(narrowrat,0)  # 0s for missing entries
-   nmfout <- nmf(a,k)
+   nmfout <- nmf(a,k)  # nmf() won't tolerate 0 rows, must change
    w <- nmfout@fit@W
    h <- nmfout@fit@H
    w %*% h
