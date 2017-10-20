@@ -32,6 +32,9 @@ getPreds <- function(narrowrat) {
 
 ###################    getnmf()   ##############################
 
+# uses NMF package, probably should change, as it is intolerant of rows
+# of 0s
+
 getNMF <- function(narrowrat,k) {
    require(NMF)
    a <- buildMatrix(narrowrat,0)  # 0s for missing entries
@@ -39,5 +42,21 @@ getNMF <- function(narrowrat,k) {
    w <- nmfout@fit@W
    h <- nmfout@fit@H
    w %*% h
+}
+
+###################    getnmf()   ##############################
+
+# say have matrix A to complete, resulting in A-hat, with estimated
+# entries; this evaluates the predictive ability, with 'rats' being the
+# (useID, itemID, rating) matrix
+
+predahat <- function(ahat,rats) {
+   nrats <- nrow(rats)
+   preds <- vector(length = nrats)
+   for (i in 1:nrats) {
+      preds[i] <- ahat[rats[i,1],rats[i,2]]
+   }
+   actual <- rats[,3]
+   mean(abs(round(preds) - actual))
 }
 
