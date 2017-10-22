@@ -1,18 +1,18 @@
-\name{ratingness,covratingness}
+\name{ratingness,covratingness,getML,getInstEval}
 \alias{ratingness}
 \alias{covratingness}
+\alias{getML}
+\alias{getInstEval}
 
-\title{Degrees of Rating Activity}
+\title{Utilities}
 
-\description{
-In recommender system data, some users are more active raters than
-others, i.e. they rate more items than do others.  These simple functions
-facilitate taking "ratingness" into account, say as a covariate.
+\description{Miscellaneous utility functions.}
 }
 
 \usage{
 ratingness(ratingsIn,splitCol)
 covratingness(ratingsIn,splitCol)
+getInstEval()
 }
 
 \arguments{
@@ -24,10 +24,18 @@ covratingness(ratingsIn,splitCol)
 
 \details{
 
-   The fact that some users rate more items may be useful, say as a
-   predictor.  A typical usage of the latter is to call
-   \code{covratingness} and then append the result to the input data
-   frame.
+   The InstEval and 100K MovieLens datasets serve as examples and
+   testbeds for many methods in this package.  Since each requires some
+   amount of setup, we encapsulate the setup operations in the
+   \code{getInstEval} and \code{getML} functions.
+
+   The fact that some users rate more items may itself be useful  as a
+   predictor.  Frequent rates, for instance, may be more liberal in
+   their ratings, so this variable may be important to include as a
+   covariate.
+
+   A typical usage is to call \code{covratingness} and then append the
+   result to the input data frame.
 
 }
 
