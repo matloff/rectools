@@ -2,7 +2,8 @@ trainReco <- function(ratingsIn,rnk = 10)
  {
    library(recosystem)
    r <- Reco()
-   train_set = data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3])
+   train_set <- 
+      data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
    #print("TEST")
    r$train(train_set,opts = list(dim=rnk)) 
    P_file = out_file(tempfile())
