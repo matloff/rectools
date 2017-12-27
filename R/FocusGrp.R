@@ -11,7 +11,7 @@
 
 # arguments:
 
-#    ydotsObj: output of findYdotsMM() or findYdotsMLE()
+#    ydotsObj: output of trainMM() or trainMLE()
 #    ratingsIn: input data, 3-column
 #    k: the IDs of the most "accurate" k users will be returned
 #    minn: minimum number of ratings for a user to be considered

@@ -21,7 +21,7 @@ xvalMLE <- function(ratingsIn, trainprop=0.5,cls=NULL){
   trainIdxs = sample(1:nrowRatIn,rowNum)
   trainingSet = ratIn[trainIdxs, ]
   # get means
-  means = findYdotsMLE(trainingSet,cls)
+  means = trainMLE(trainingSet,cls)
   testIdxs = setdiff(1:nrowRatIn,trainIdxs)
   testSet = ratIn[testIdxs,]
   testSet$pred = predict(means,testSet[,-3])

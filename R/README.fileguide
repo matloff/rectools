@@ -34,14 +34,14 @@ findUsrItmData.R:
 
    See cosine.R above.  May be of independent use.
 
-findYdotsMLE.R:
+trainMLE.R:
 
    Finds the Y.., Yi. and Y.j values for random effects model; can
    predict from these.  Estimates come from MLE.
 
 findYdtsMM.R:
 
-   Same as findYdotsMLE.R except that Method of Moments is used.
+   Same as trainMLE.R except that Method of Moments is used.
 
 hybrid.R:
 

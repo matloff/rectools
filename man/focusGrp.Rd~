@@ -40,7 +40,7 @@ ivl <- InstEval
 ivl$s <- as.numeric(ivl$s) 
 ivl$d <- as.numeric(ivl$d) 
 ivl3 <- ivl[,c(1,2,7)]
-ydo <- trainMM(ivl3)
+ydo <- findYdotsMM(ivl3)
 focusGrp(ydo,ivl3)  # users 90, 118, 231, ... are chosen
 }
 

@@ -1,7 +1,7 @@
 
 # WORK IN PROGRESS!
 
-# rec systs used for link prediction; adapted from findYdotsMM()
+# rec systs used for link prediction; adapted from trainMM()
 
 # undirected graph
 

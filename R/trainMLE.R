@@ -17,7 +17,7 @@
 
 #   ydotsMLEpar (if non-NULL cls): S3 class with components of class ydotsMLE
 
-findYdotsMLE <- function(ratingsIn,cls=NULL) {
+trainMLE <- function(ratingsIn,cls=NULL) {
   require(lme4)
   nms <- names(ratingsIn)
   haveCovs = ncol(ratingsIn) > 3
@@ -78,7 +78,7 @@ formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
 
 # predict() method for the 'ydotsMLE' class
 #
-# testSet in same form as ratingsIn in findYdots(), except that there 
+# testSet in same form as ratingsIn in train(), except that there 
 # is no ratings column
 #
 # returns vector of predicted values for testSet
@@ -105,10 +105,10 @@ checkydmle <- function() {
    check <- 
       data.frame(userID = c(1,3,2,1,2),itemID = c(1,1,3,2,3),ratings=6:10)
    print(check)
-   print(findYdotsMLE(check))
+   print(trainMLE(check))
    check$cv <- c(1,4,6,2,10)
    print(check)
-   print(findYdotsMLE(check))
+   print(trainMLE(check))
 }
 
 

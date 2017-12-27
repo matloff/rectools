@@ -1,5 +1,5 @@
 
-#  modified version of earlier findYdotsMM() etc., May 27, 2017, with
+#  modified version of earlier trainMM() etc., May 27, 2017, with
 #  new approach to use of covariates U_ijk for user i, item j;
 #  NOTE: the covariates will be centered
 
@@ -28,7 +28,7 @@
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
 #      regObj: if have covariates, regression output, e.g. coefs
 
-findYdotsMM <- function(ratingsIn,regressYdots=FALSE) {
+trainMM <- function(ratingsIn,regressYdots=FALSE) {
   users <- ratingsIn[,1]
   items <- ratingsIn[,2]
   # IMPORTANT NOTE:
@@ -75,7 +75,7 @@ trainMM <- findYdotsMM
 #    testSet: data frame in same form as ratingsIn above except that there 
 #             is no ratings column; thus covariates, if any, are shifted
 #             leftward one slot, i.e. userID, itemID, cov1, cov2...
-#    ydotsObj: the output of findYdotsMM()
+#    ydotsObj: the output of trainMM()
 #    minN:  if Ni < minN and have covariates, use the latter instead of Yi;
 #           see above
 
@@ -113,11 +113,11 @@ checkyd <- function() {
       ratings <- 6:10)
    names(check) <- c('u','i','r')
    print(check)
-   print(findYdotsMM(check))
+   print(trainMM(check))
    check$cv <- c(1,4,6,2,10)
    names(check)[4] <- 'x'
    print(check)
-   cout <- findYdotsMM(check)
+   cout <- trainMM(check)
    print(cout)
    testset <- check[1:2,-3]
    testset$x <- c(5,8)
@@ -176,7 +176,7 @@ train.NM <- function(ratingsIn, trainprop = 0.5,cls = NULL,
   else {
     origMatrix <- buildMatrix(ratingsIn) # Matrix A (Step 1)
     fullMatrix <- origMatrix
-    approxMatrix <- findYdotsMM(ratingsIn) # Matrix V (Step 2)
+    approxMatrix <- trainMM(ratingsIn) # Matrix V (Step 2)
     
     naMatrix <- as.data.frame(which(is.na(fullMatrix) == TRUE, arr.ind = TRUE))
     naMatrix$ratings <- NA

@@ -43,7 +43,7 @@ overall mean Y..  The predicted value of Y<sub>ij</sub> is then
 Yi. + Y.j - Y..
 
 Computation is simple, with estimation conducted by our function
-**findYdotsMM()**; prediction is done on the output by our function
+**trainMM()**; prediction is done on the output by our function
 **predict.ydotsMM()**.
 
 A novel enhancement in the package is to allow for different weights to
@@ -98,7 +98,7 @@ Covariates are allowed for both the MM and MLE versions.
 > predict(ydout,testSet[,1:2])  
 [1] 4.272660 4.410612
 > # Try using the covariates:
-> ydout <- findYdotsMLE(ivl)
+> ydout <- trainMLE(ivl)
 > predict(ydout,testSet[,-3])  
       [,1]
 3 3.286828

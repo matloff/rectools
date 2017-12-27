@@ -16,7 +16,7 @@
 #                 (and their product), enabling rating prediction from the
 #                 resulting linear function of the factors; currently
 #                 only implemented if have no covariates
-#   minN: see findYdotsMM.R
+#   minN: see trainMM.R
 
 # value:
 
@@ -34,7 +34,7 @@ xvalMM <- function(ratingsIn, trainprop=0.5,
   trainItems = trainingSet[,2]
   trainUsers = trainingSet[,1]
   # get means
-  means = findYdotsMM(trainingSet,regressYdots)
+  means = trainMM(trainingSet,regressYdots)
   # Y.. = means$grandMean
   # Yi. = means$usrMeans
   # Y.j = means$itmMeans
