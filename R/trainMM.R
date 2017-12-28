@@ -61,9 +61,6 @@ trainMM <- function(ratingsIn,regressYdots=FALSE) {
   invisible(ydots)
 }
 
-# alias
-trainMM <- findYdotsMM 
-
 # predict() method for the 'ydotsMM' class
 
 # in predicting for user i, the code looks at N_i, the number of ratings

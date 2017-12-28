@@ -47,6 +47,3 @@ linkPredMM <- function(ratingsIn,numVerts) {
   invisible(ydots)
 }
 
-# alias
-trainMM <- findYdotsMM 
-
