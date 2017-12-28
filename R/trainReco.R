@@ -22,7 +22,13 @@ trainRecoPar <- function(ratingsIn,rnk = 10, cls)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
    clusterdistribsplit(cls,'ratingsIn')
-print('must add code to add token records for users/items in at least one chunk   but not others') 
+
+   # need to account for some users being in some chunks but not others,
+   # and same for items; but too time-consuming to add fake rows etc.;
+   # instead, just return P,Q and rownums, colnums (maybe from row.names
+   # () etc.); then "vote" -- take the average among chunks that can do 
+   # that row/col 
+   
    clusterExport(cls,c('rnk'),envir=environment())
    res <- clusterEvalQ(cls,
       {
@@ -35,9 +41,8 @@ print('must add code to add token records for users/items in at least one chunk 
       res = r$output(out_memory(),out_memory())
       }
    )
-   print('add code to average the PQ products over the cluster nodes')
    result <- list(P = res$P, Q = res$Q)
-   class(result) <- 'RecoS3'
+   class(result) <- 'RecoS3par'
    result
 }
 
@@ -56,4 +61,6 @@ predict.RecoS3 <- function(recoObj,testSet) {
    }
    testSet$pred
 }
+
+# predict.RecoS3par <- 
 
