@@ -7,7 +7,6 @@
 \title{Utilities}
 
 \description{Miscellaneous utility functions.}
-}
 
 \usage{
 ratingness(ratingsIn,splitCol)
