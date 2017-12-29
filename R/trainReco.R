@@ -22,19 +22,17 @@ trainRecoPar <- function(ratingsIn,rnk = 10, cls)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
    clusterdistribsplit(cls,'ratingsIn')
+   clusterExport(cls,c('rnk'),envir=environment())
+   clusterEvalQ(cls,r <- Reco())
+   clusterEvalQ(cls, train_set <- 
+      data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
 
    # need to account for some users being in some chunks but not others,
-   # and same for items; but too time-consuming to add fake rows etc.;
-   # instead, just return P,Q and rownums, colnums (maybe from row.names
-   # () etc.); then "vote" -- take the average among chunks that can do 
-   # that row/col 
-   
-   clusterExport(cls,c('rnk'),envir=environment())
-   res <- clusterEvalQ(cls,
-      {
-      r <- Reco()
-      train_set <- 
-         data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
+   # and same for items; add fake rows and cols consisting of a single 1
+   # rating
+   tmp <- clusterEvalQ(cls,users <- unique(ratingsIn[,1]))
+
+
       r$train(train_set,opts = list(dim=rnk)) 
       P_file = out_file(tempfile())
       Q_file = out_file(tempfile())
