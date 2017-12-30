@@ -16,8 +16,7 @@ trainReco <- function(ratingsIn,rnk = 10)
  }
 
 # Software Alchemy version of trainReco()
-trainRecoPar <- function(ratingsIn,rnk = 10, cls)
-{
+trainRecoPar <- function(ratingsIn,rnk = 10, cls) {
    require(recosystem)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
@@ -31,17 +30,34 @@ trainRecoPar <- function(ratingsIn,rnk = 10, cls)
    # and same for items; add fake rows and cols consisting of a single 1
    # rating
    tmp <- clusterEvalQ(cls,users <- unique(ratingsIn[,1]))
+   allUsers <- unique(unlist(tmp))
+   clusterExport(cls,c('allUsers'),envir=environment())
+   tmp <- clusterEvalQ(cls,items <- unique(ratingsIn[,2]))
+   allItems <- unique(unlist(tmp))
+   clusterExport(cls,c('allItems'),envir=environment())
+   clusterEvalQ(cls,
+     {
+        for (usr in allUsers) {
+           if (!(usr %in% ratingsIn[,1])) 
+              ratingsIn <<- rbind(c(usr,1,1))
+        };
+        for (itm in allItems) {
+           if (!(itm %in% ratingsIn[,2])) 
+              ratingsIn <<- rbind(c(1,itm,,1))
+        }
+     })
 
-
-      r$train(train_set,opts = list(dim=rnk)) 
-      P_file = out_file(tempfile())
-      Q_file = out_file(tempfile())
+   # now compute the factorizations
+   result <- clusterEvalQ(cls,
+      {
+      r$train(train_set,opts = list(dim=rnk)); 
+      P_file = out_file(tempfile());
+      Q_file = out_file(tempfile());
       res = r$output(out_memory(),out_memory())
-      }
-   )
-   result <- list(P = res$P, Q = res$Q)
+      result <- list(P = res$P, Q = res$Q)
+      result
+      })
    class(result) <- 'RecoS3par'
-   result
 }
 
 predict.RecoS3 <- function(recoObj,testSet) {
