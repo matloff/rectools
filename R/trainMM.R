@@ -1,4 +1,11 @@
 
+# TODO:
+
+#    allow covariates for the items
+
+#    accommodate matrices in addition to data frames, in order to all
+#    use of bigmemory package
+
 #  modified version of earlier trainMM() etc., May 27, 2017, with
 #  new approach to use of covariates U_ijk for user i, item j;
 #  NOTE: the covariates will be centered
@@ -10,14 +17,14 @@
 #     
 #  that means
 
-#      E(Y_ij | U_ik, V_jk) = sum_k gamma_k U_ik + sum_k delta_k V_jk
+#      E(Y_ij | U_ijk = sum_k gamma_k U_ik + sum_k delta_k V_jk
 
 # and the coefficients can be estimated via lm() without a const term
 
 # arguments:
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
-#              covariates); data framee
+#              covariates); data frame
 
 # value:
 
@@ -39,18 +46,21 @@ trainMM <- function(ratingsIn,regressYdots=FALSE) {
   items <- as.character(items)
   ratings <- ratingsIn[,3]
   nms <- names(ratingsIn)
-  Y.. <- mean(ratings) 
+  Y.. <- mean(ratings)  # overall mean
   Yi. <- tapply(ratings,users,mean) # means of all ratings per user
   Y.j <- tapply(ratings,items,mean) # means of all ratings per item
   ydots <- list(grandMean=Y..,usrMeans=Yi.,itmMeans=Y.j)
   haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
-     # center the covs
+     # as noted above, center the covs
      tmp <- scale(ratingsIn[,-(1:3)],scale=FALSE)
      ratingsIn[,-(1:3)] <- tmp
+     # need to record the centering process in order to use predict()
+     # later, so the mean of each covariate is saved here
      ydots$covmeans <- attr(tmp,'scaled:center')
-     # regress, no constant term; could do a weighted least squares,
-     # using the Ni, but since the latter is random too, not needed
+     # regress ratings against covariates, no constant term
+     # NOTE:  could do a weighted least squares, using the Ni, 
+     # but since the latter is random too, not needed
      frml <- as.formula(paste(nms[3],'~ .-1'))
      lmout <- lm(frml,data=ratingsIn[,-(1:2)])
      ydots$lmout <- lmout
@@ -65,7 +75,7 @@ trainMM <- function(ratingsIn,regressYdots=FALSE) {
 
 # in predicting for user i, the code looks at N_i, the number of ratings
 # by user i; if that number is below minN, the prediction comes from
-# user i's covariate information instead of from Yi.
+# user i's covariate information (if available) instead of from Yi.
 
 # arguments
 
