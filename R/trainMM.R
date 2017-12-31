@@ -7,15 +7,30 @@
 #    use of bigmemory package
 
 #  modified version of earlier trainMM() etc., May 27, 2017, with
-#  new approach to use of covariates U_ijk for user i, item j;
+#  new approach to use of covariates X_ijk for user i, item j;
 #  NOTE: the covariates will be centered
 
-#  basic model:
+#  basic model is
 #  
-#     Y_ij = 
-#        mu + sum_k gamma_k U_ijk + alpha_i + beta_j + eps 
-#     
-#  that means
+#     Y = mu + alpha + beta + eps 
+#    
+#  for simplicity, the following is at the population level
+
+#  after regressing alpha and/or beta on the vector X of covariates
+#  then either alpha or beta or both are replaced by X in the
+#  prediction; e.g. if X depends only on the user covariates, then our
+#  prediction is
+#
+#     mu + gamma'V + beta
+#
+#  where gamma is the vector of regression coefficients; with sampled
+#  data rather than population quantities, this means 
+#
+#     hat(Y_ij) = hat(mu) + hat(gamma)'V_i + hat(beta_j)
+#
+#  with hat(mu) being the overall mean of the Y data and hat(bet_j)
+#  begin Y.j, then mean of Y_ij over all i
+
 
 #      E(Y_ij | U_ijk = sum_k gamma_k U_ik + sum_k delta_k V_jk
 
@@ -25,6 +40,7 @@
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
 #              covariates); data frame
+#   
 
 # value:
 
@@ -35,7 +51,8 @@
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
 #      regObj: if have covariates, regression output, e.g. coefs
 
-trainMM <- function(ratingsIn,regressYdots=FALSE) {
+trainMM <- function(ratingsIn
+{
   users <- ratingsIn[,1]
   items <- ratingsIn[,2]
   # IMPORTANT NOTE:
@@ -75,7 +92,8 @@ trainMM <- function(ratingsIn,regressYdots=FALSE) {
 
 # in predicting for user i, the code looks at N_i, the number of ratings
 # by user i; if that number is below minN, the prediction comes from
-# user i's covariate information (if available) instead of from Yi.
+# user i's covariate information (if available) instead of from the Yi.
+# and Y.j values
 
 # arguments
 
@@ -83,33 +101,51 @@ trainMM <- function(ratingsIn,regressYdots=FALSE) {
 #             is no ratings column; thus covariates, if any, are shifted
 #             leftward one slot, i.e. userID, itemID, cov1, cov2...
 #    ydotsObj: the output of trainMM()
-#    minN:  if Ni < minN and have covariates, use the latter instead of Yi;
-#           see above
+#    minN:  if Ni < minN and have covariates, use the latter instead of
+#           Yi. and Y.j; see above
 
 # returns vector of predicted values for testSet
-predict.ydotsMM = function(ydotsObj,testSet,minN=0) {
+predict.ydotsMM = function(ydotsObj,testSet,minN=0, 
+      haveUserCovs=FALSE,haveItemCovs=FALSE,haveBoth=FALSE) 
+{
    haveCovs <- ncol(testSet) > 2
    # see comment on as.character() above
    ts1 <- as.character(testSet[,1])  # user IDs, char form
-   # tmp will basically consist of the user means, except that in the
+   ts2 <- as.character(testSet[,2])  # item IDs, char form
+   # below, pred will basically consist of the user means, except that in the
    # covariate case some will be replaced by predict.lm() values + Y..
    if (!haveCovs) {
-      tmp <- ydotsObj$usrMeans[ts1] 
+      pred <- ydotsObj$usrMeans[ts1] + ydotsObj$itmMeans[ts2] - 
+         ydotsObj$grandMean
    }
    else {
+      # must center the covariates, using the same centering information
+      # used in ydotsObj
       colmeans <- ydotsObj$covmeans
       testSet[,-(1:2)] <- 
          scale(testSet[,-(1:2)],center=colmeans,scale=FALSE)
-      tmp <- 
-         ifelse (ydotsObj$Ni[ts1] >= minN,
-             ydotsObj$usrMeans[ts1],
-             predict(ydotsObj$lmout,testSet[,-(1:2),drop=FALSE]) +
-                ydotsObj$grandMean
-         )
-   }
-   testSet$pred <- tmp +
-      ydotsObj$itmMeans[as.character(testSet[,2])] - ydotsObj$grandMean
-   testSet$pred
+      pred <- vector(length=nrow)testSet)  # will eventually be output
+      names(pred) <- as.character(1:length(pred))
+      # which ones to use regression on
+      smallNi <- ts1[ydotsObj$Ni[ts1] < minN]
+      bigNi <- ts1[ydotsObj$Ni[ts1] < minN]
+      # non-regression cases
+      pred[bigNi] <- 
+         ydotsObj$usrMeans[bigNi] + ydotsObj$itmMeans[bigNi] -
+            - ydotsObj$grandMean
+      pred[smallNi] <- 
+         if (haveBoth) {  # have both user and item covs
+            ydotsObj$grandMean + 
+               predict(ydotsObj$lmout,testSet[smallNi,-(1:2)])
+         } else if (!is.null(userCovs))  # have user covs only
+            predict(ydotsObj$lmout,testSet[smallNi,-(1:2)]) +
+               ydotsObj$usrMeans[smallNi]
+         } else  {  # have item covs only
+            predict(ydotsObj$lmout,testSet[smallNi,-(1:2)]) +
+               ydotsObj$itmMeans[smallNi]
+         }
+   }  # end covs section
+   pred
 }
 
 # test case
@@ -131,17 +167,8 @@ checkyd <- function() {
    print(predict(cout,testset,2))
 }
 
-
-
-predict.NM = function(ydotsObj,testSet) {
-  testSet$pred = ydotsObj$usrMeans[as.character(testSet[,1])] + 
-    ydotsObj$itmMeans[as.character(testSet[,2])] - ydotsObj$grandMean
-#  if (!is.null(ydotsObj$regObj))
- #   testSet$pred = testSet$pred + predict(ydotsObj$regObj,testSet[,-(1:2)])
-  testSet$pred
-}
-
-getDiff <- function(fullMatrix, filledNMF){
+getDiff <- function(fullMatrix, filledNMF)
+{
   indicies <- which(!is.na(fullMatrix), arr.ind = TRUE)
   diff <- matrix(data = NA,nrow = nrow(indicies), 1)
   for(i in 1:nrow(indicies))
@@ -153,7 +180,8 @@ getDiff <- function(fullMatrix, filledNMF){
 }
 
 
-getAcc <- function(fullMatrix,filledNMF, threshold = 0.5) {
+getAcc <- function(fullMatrix,filledNMF, threshold = 0.5) 
+{
   diff <- abs(getDiff(fullMatrix, filledNMF))
   avgDiff <- colMeans(abs(diff), na.rm = TRUE, dims =1) # average difference is 1.19 
   # Remove the na's from diff 
@@ -170,40 +198,8 @@ getAcc <- function(fullMatrix,filledNMF, threshold = 0.5) {
   
 }
 
-train.NM <- function(ratingsIn, trainprop = 0.5,cls = NULL,
-                    rnk = 10, recosystem = FALSE,regressYdots=FALSE)
-  {
-  require(NMF)
-  library(NMF)
-  if(recosystem == TRUE){
-    source((paste(system.file(package = 'rectools'),
-                  'recosys/xvalRecoParallel.R', sep = "")))
-    res <- xvalReco(ratingsIn,trainprop,cls,rnk)
-  }
-  else {
-    origMatrix <- buildMatrix(ratingsIn) # Matrix A (Step 1)
-    fullMatrix <- origMatrix
-    approxMatrix <- trainMM(ratingsIn) # Matrix V (Step 2)
-    
-    naMatrix <- as.data.frame(which(is.na(fullMatrix) == TRUE, arr.ind = TRUE))
-    naMatrix$ratings <- NA
-    
-    preds <- predict.NM(approxMatrix,naMatrix) # Step 3
-
-    fullMatrix[which(is.na(fullMatrix))] <- preds 
-    fullMatrix[fullMatrix < 0] <- 0
-    require(NMF)
-    result <- nmf(as.matrix(fullMatrix),10) # Step 4
-    filledNMF <- as.matrix(result@fit@W) %*% as.matrix(result@fit@H)
-    avgd <- getAcc(fullMatrix, filledNMF) # 1.149 for the movielens 100k data 
-    print(avgd)
-    
-  }
-  filledNMF
-}
-
-
-buildMatrix <- function(ratingsIn,NAval=NA){
+buildMatrix <- function(ratingsIn,NAval=NA)
+{
   # deal with possible factors
   dmax <- function(d) {
     if (is.factor(d)) return(length(levels(d)))
