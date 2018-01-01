@@ -21,10 +21,10 @@ trainRecoPar <- function(ratingsIn,rnk = 10, cls) {
    require(partools)
    clusterEvalQ(cls,require(recosystem))
    clusterdistribsplit(cls,'ratingsIn')
-   clusterExport(cls,c('rnk'),envir=environment())
+   clusterExport(cls,'rnk',envir=environment())
    clusterEvalQ(cls,r <- Reco())
-   clusterEvalQ(cls, train_set <- 
-      data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
+   clusterEvalQ(cls,train_set <- 
+      data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE))
 
    # need to account for some users being in some chunks but not others,
    # and same for items; add fake rows and cols consisting of a single 1
