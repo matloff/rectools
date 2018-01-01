@@ -108,16 +108,18 @@ trainMM <- function(ratingsIn)
 predict.ydotsMM = function(ydotsObj,testSet,minN=0, 
       haveUserCovs=FALSE,haveItemCovs=FALSE,haveBoth=FALSE) 
 {
-   haveCovs <- ncol(testSet) > 2
-   # see comment on as.character() above; this gets tricky
+   # see comment on as.character() above; this gets tricky; we will move
+   # back and forth between referring to elements by name and by ordinal
+   # index, i.e. w['b'] vs. w[28]
    ts1 <- as.character(testSet[,1])  # user IDs, char form
    ts2 <- as.character(testSet[,2])  # item IDs, char form
-   usrMeans <- ydotsObj$usrMeans[ts1]
-   itmMeans <- ydotsObj$usrMeans[ts2]
+   usrMeans <- ydotsObj$usrMeans[ts1]  # with named elements
+   itmMeans <- ydotsObj$itmMeans[ts2]  # with named elements
    # make all terms in sums below have consistent element names!
    names(itmMeans) <- ts1
    pred <- vector(length=nrow(testSet))  # will be our return value
-   names(pred) <- NULL
+   names(pred) <- NULL  # pred will always use ordinal indexing
+   haveCovs <- ncol(testSet) > 2
    if (!haveCovs) {
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
@@ -128,96 +130,52 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
       testSet[,-(1:2)] <- 
          scale(testSet[,-(1:2)],center=colmeans,scale=FALSE)
       # which ones to use regression on
-browser()
-      smallNiUsers <- ts1[ydotsObj$Ni[ts1] < minN]
-      bigNiUsers <- ts1[ydotsObj$Ni[ts1] >= minN]
+      # first, ordinal indices, then named indices
+      smallNiUsersWhich <- which(ydotsObj$Ni[ts1] < minN)
+      smallNiUsers <- ts1[smallNiUsersWhich]
+      bigNiUsersWhich <- which(ydotsObj$Ni[ts1] >= minN)
+      bigNiUsers <- ts1[bigNiUsersWhich]
       smallNiItems <- ts2[ydotsObj$Ni[ts1] < minN]
       bigNiItems <- ts2[ydotsObj$Ni[ts1] >= minN]
-      # non-regression cases
-      pred[bigNiUsers] <- 
+      # could use ifelse() here, but gets quite messy; better to fill in
+      # the 'pred' vector's 2 portions in 2 separate actions
+      # non-regression cases:
+      pred[bigNiUsersWhich] <- 
          ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
-            - ydotsObj$grandMean
-      # regression cases
-      pred[smallNiUsers] <- 
+            ydotsObj$grandMean
+      # regression cases:
+      pred[smallNiUsersWhich] <- 
          if (haveBoth) {  # have both user and item covs
-            ydotsObj$grandMean + 
-               predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)])
-         } else if (!is.null(haveUserCovs)) {  # have user covs only
-            predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)]) +
-               ydotsObj$usrMeans[smallNiItems]
+            ydotsObj$grandMean + predict(ydotsObj$lmout,
+               testSet[smallNiUsersWhich,-(1:2),drop=FALSE])
+         } else if (haveUserCovs) {  # have user covs only
+            # note that + and - Y.. terms cancel
+            predict(ydotsObj$lmout,
+               testSet[smallNiUsersWhich,-(1:2),drop=FALSE]) +
+               ydotsObj$itmMeans[smallNiItems]
          } else  {  # have item covs only
-            predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)]) +
-               ydotsObj$itmMeans[smallNiUsers]
+            # note that + and - Y.. terms cancel
+            predict(ydotsObj$lmout,
+               testSet[smallNiUsersWhich,-(1:2),drop=FALSE]) +
+               ydotsObj$usrMeans[smallNiUsers]
          }
    }  # end covs section
    pred
 }
 
 # test case
-checkyd <- function() {
-   check <- data.frame(
-      userID <- c(1,3,2,1,2),
-      itemID <- c(1,1,3,2,3),
-      ratings <- 6:10)
-   names(check) <- c('u','i','r')
-   print(check)
-   print(trainMM(check))
-   check$cv <- c(1,4,6,2,10)
-   names(check)[4] <- 'x'
-   print(check)
-   cout <- trainMM(check)
-   print(cout)
-   testset <- check[1:2,-3]
-   testset$x <- c(5,8)
-   print(predict(cout,testset,2))
-}
-
-getDiff <- function(fullMatrix, filledNMF)
-{
-  indicies <- which(!is.na(fullMatrix), arr.ind = TRUE)
-  diff <- matrix(data = NA,nrow = nrow(indicies), 1)
-  for(i in 1:nrow(indicies))
-    for(j in 1:ncol(indicies)){
-      diff[i,1] <- round(fullMatrix[indicies[i,1],indicies[j,2]]) - filledNMF[indicies[i,1],indicies[j,2]]
-    }
-  
-  diff
-}
-
-
-getAcc <- function(fullMatrix,filledNMF, threshold = 0.5) 
-{
-  diff <- abs(getDiff(fullMatrix, filledNMF))
-  avgDiff <- colMeans(abs(diff), na.rm = TRUE, dims =1) # average difference is 1.19 
-  # Remove the na's from diff 
-  # Calculate the values less than the threshold 
-  count = 0;
-  tester <- na.exclude(diff)
-  for(i in 1:nrow(diff))
-  {
-    if(diff[i] < 0.5 )
-      count = count + 1
-  }
-  acc <- count/ nrow(diff)
-  acc
-  
-}
-
-buildMatrix <- function(ratingsIn,NAval=NA)
-{
-  # deal with possible factors
-  dmax <- function(d) {
-    if (is.factor(d)) return(length(levels(d)))
-    max(d)
-  }
-  users = ratingsIn[,1]
-  movies = ratingsIn[,2]
-  rating = ratingsIn[,3]
-  newMatrix = matrix(NAval, 
-                     nrow = dmax(users), ncol = dmax(movies))
-  for(rows in 1:nrow(ratingsIn)){
-    newMatrix[ratingsIn[rows,1],ratingsIn[rows,2]] = ratingsIn[rows,3]
-  }
-  return (newMatrix)
+checkMM <- function() {
+   set.seed(99999)
+   d <- data.frame(u=sample(11:15,12,replace=T),i=sample(26:30,12,replace=T),
+           r=sample(1:5,12,replace=T),cv1=runif(12))
+   ts <- data.frame(u=sample(11:15,5,replace=T),i=sample(26:30,5,replace=T),
+           cv1=runif(5))
+   yd <- trainMM(d)
+   predict(yd,ts)
+   # 5.4166667 0.6666667 0.6666667 2.6666667 3.6666667
+   predict(yd,ts,haveItemCovs=T,minN=2)
+   # 5.4166667 -0.3306984  0.5349273  3.0111962  3.6666667
+   predict(yd,ts,haveUserCovs=T,minN=2)
+   # 5.416667 1.669302 2.534927 3.011196 3.666667
 }
 
