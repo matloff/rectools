@@ -22,8 +22,9 @@
 
 #    accuracy value
 
-xvalMM <- function(ratingsIn, trainprop=0.5,
-    regressYdots=FALSE,minN=0){
+xvalMM <- function(ratingsIn, trainprop=0.5, minN=0,
+    haveUserCovs=FALSE, haveItemCovs=FALSE, haveBoth=FALSE) 
+{
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
@@ -34,23 +35,17 @@ xvalMM <- function(ratingsIn, trainprop=0.5,
   trainItems = trainingSet[,2]
   trainUsers = trainingSet[,1]
   # get means
-  means = trainMM(trainingSet,regressYdots)
+  means = trainMM(trainingSet)
   # Y.. = means$grandMean
   # Yi. = means$usrMeans
   # Y.j = means$itmMeans
-  testIdxs = setdiff(1:nrowRatIn,trainIdxs)
-  testA = ratIn[testIdxs,]
-  testA$pred = predict(means,testA[,-3],minN)  # predict.ydotsMM
-  # need to integrate the following into predict.ydotsMM
-  if (regressYdots) {
-     yi. = means$usrMeans[testA[,1]]
-     y.j = means$itmMeans[testA[,2]]
-     testA$pred = cbind(1,yi.,y.j) %*% means$regressYdots 
-  }
+  testA = ratIn[-trainIdxs,]
+  testA$pred = predict(means,testA[,-3], minN=minN,
+    haveUserCovs=haveUserCovs, haveItemCovs=haveItemCovs ,haveBoth=haveBoth)
   numpredna = sum(is.na(testA$pred))
   # calculate accuracy 
-  result = list(ndata=nrowRatIn,trainprop=trainprop,numpredna=numpredna)
-     testA$pred = round(testA$pred)
+  result = list(nFullData=nrowRatIn,trainprop=trainprop,numpredna=numpredna)
+  testA$pred = round(testA$pred)
   # accuracy measures
   exact <- mean(round(testA$pred) == testA[,3],na.rm=TRUE)
   mad <- mean(abs(testA$pred-testA[,3]),na.rm=TRUE)
@@ -65,9 +60,10 @@ xvalMM <- function(ratingsIn, trainprop=0.5,
      overallexact=overallexact,
      overallmad=overallmad,
      overallrms=overallrms)
-  result$idxs <- testIdxs
+  ### result$idxs <- testIdxs
   result$preds <- testA$pred
   result$actuals <- testA[,3]
+  result$type <- 'MM'
   class(result) <- 'xvalb'
   result
 }
