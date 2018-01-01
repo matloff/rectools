@@ -51,7 +51,7 @@
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
 #      regObj: if have covariates, regression output, e.g. coefs
 
-trainMM <- function(ratingsIn
+trainMM <- function(ratingsIn)
 {
   users <- ratingsIn[,1]
   items <- ratingsIn[,2]
@@ -109,14 +109,17 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
       haveUserCovs=FALSE,haveItemCovs=FALSE,haveBoth=FALSE) 
 {
    haveCovs <- ncol(testSet) > 2
-   # see comment on as.character() above
+   # see comment on as.character() above; this gets tricky
    ts1 <- as.character(testSet[,1])  # user IDs, char form
    ts2 <- as.character(testSet[,2])  # item IDs, char form
-   # below, pred will basically consist of the user means, except that in the
-   # covariate case some will be replaced by predict.lm() values + Y..
+   usrMeans <- ydotsObj$usrMeans[ts1]
+   itmMeans <- ydotsObj$usrMeans[ts2]
+   # make all terms in sums below have consistent element names!
+   names(itmMeans) <- ts1
+   pred <- vector(length=nrow(testSet))  # will be our return value
+   names(pred) <- NULL
    if (!haveCovs) {
-      pred <- ydotsObj$usrMeans[ts1] + ydotsObj$itmMeans[ts2] - 
-         ydotsObj$grandMean
+      pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
    else {
       # must center the covariates, using the same centering information
@@ -124,25 +127,27 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
       colmeans <- ydotsObj$covmeans
       testSet[,-(1:2)] <- 
          scale(testSet[,-(1:2)],center=colmeans,scale=FALSE)
-      pred <- vector(length=nrow)testSet)  # will eventually be output
-      names(pred) <- as.character(1:length(pred))
       # which ones to use regression on
-      smallNi <- ts1[ydotsObj$Ni[ts1] < minN]
-      bigNi <- ts1[ydotsObj$Ni[ts1] < minN]
+browser()
+      smallNiUsers <- ts1[ydotsObj$Ni[ts1] < minN]
+      bigNiUsers <- ts1[ydotsObj$Ni[ts1] >= minN]
+      smallNiItems <- ts2[ydotsObj$Ni[ts1] < minN]
+      bigNiItems <- ts2[ydotsObj$Ni[ts1] >= minN]
       # non-regression cases
-      pred[bigNi] <- 
-         ydotsObj$usrMeans[bigNi] + ydotsObj$itmMeans[bigNi] -
+      pred[bigNiUsers] <- 
+         ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
             - ydotsObj$grandMean
-      pred[smallNi] <- 
+      # regression cases
+      pred[smallNiUsers] <- 
          if (haveBoth) {  # have both user and item covs
             ydotsObj$grandMean + 
-               predict(ydotsObj$lmout,testSet[smallNi,-(1:2)])
-         } else if (!is.null(userCovs))  # have user covs only
-            predict(ydotsObj$lmout,testSet[smallNi,-(1:2)]) +
-               ydotsObj$usrMeans[smallNi]
+               predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)])
+         } else if (!is.null(haveUserCovs)) {  # have user covs only
+            predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)]) +
+               ydotsObj$usrMeans[smallNiItems]
          } else  {  # have item covs only
-            predict(ydotsObj$lmout,testSet[smallNi,-(1:2)]) +
-               ydotsObj$itmMeans[smallNi]
+            predict(ydotsObj$lmout,testSet[smallNiUsers,-(1:2)]) +
+               ydotsObj$itmMeans[smallNiUsers]
          }
    }  # end covs section
    pred
