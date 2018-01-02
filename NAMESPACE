@@ -6,7 +6,7 @@ S3method(predict,ydotsMM)
 export(trainMM,trainMLE,trainReco,predict.ydotsMM,plot.ydotsMM,
        predict.ydotsMLE,
        formUserData,predict.usrData,cosDist,
-       xvalMM,xvalMLE,xvalCos,
+       xvalMM,xvalMLE,xvalCos,deleteNewIDs,xvSmallNi, 
        plot.ydotsMM,plot.xvalb,
        getTrainSet,getTestSet,trainReco,xvalReco,
        focusGrp, buildMatrix,

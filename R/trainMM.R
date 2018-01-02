@@ -115,31 +115,11 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
    # index, i.e. w['b'] vs. w[28]
    ts1 <- as.character(testSet[,1])  # user IDs, char form
    ts2 <- as.character(testSet[,2])  # item IDs, char form
-   # any users or items in test set but not the training set?
-   trainingUsers <- ydotsObj$trainingUsers
-   tmp <- setdiff(unique(ts1),trainingUsers)
-   if (length(tmp) > 0) {
-      for (usr in tmp) {
-         tmp1 <- which(ts1 == usr)
-         testSet <- testSet[-tmp1,]
-      }
-   }
-   trainingItems <- ydotsObj$trainingItems
-   tmp <- setdiff(unique(ts2),trainingItems)
-   if (length(tmp) > 0) {
-      for (itm in tmp) {
-         tmp1 <- which(ts2 == itm)
-         testSet <- testSet[-tmp1,]
-      }
-   }
-
-
    usrMeans <- ydotsObj$usrMeans[ts1]  # with named elements
    itmMeans <- ydotsObj$itmMeans[ts2]  # with named elements
    # make all terms in sums below have consistent element names!
    names(itmMeans) <- ts1
-   pred <- vector(length=nrow(testSet))  # will be our return value
-   names(pred) <- NULL  # pred will always use ordinal indexing
+   pred <- vector(length=nrow(testSet))
    haveCovs <- ncol(testSet) > 2
    if (!haveCovs) {
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
@@ -147,6 +127,8 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
    else {
       if (sum(haveUserCovs+haveItemCovs+haveBoth) == 0)
          stop('with covariates, one of the "have*" must be TRUE')
+      if (minN == 0) 
+         stop('with covariates, need minN > 0')
       # must center the covariates, using the same centering information
       # used in ydotsObj
       colmeans <- ydotsObj$covmeans
@@ -183,6 +165,7 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0,
                ydotsObj$usrMeans[smallNiUsers]
          }
    }  # end covs section
+   names(pred) <- NULL  # use ordinal indexing
    pred
 }
 

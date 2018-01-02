@@ -39,17 +39,20 @@ xvalMM <- function(ratingsIn, trainprop=0.5, minN=0,
   # Y.. = means$grandMean
   # Yi. = means$usrMeans
   # Y.j = means$itmMeans
-  testA = ratIn[-trainIdxs,]
-  testA$pred = predict(means,testA[,-3], minN=minN,
-    haveUserCovs=haveUserCovs, haveItemCovs=haveItemCovs ,haveBoth=haveBoth)
-  numpredna = sum(is.na(testA$pred))
+  testIdxs <- setdiff(1:nrowRatIn,trainIdxs)
+  testA = ratIn[testIdxs,]
+  tmp <- deleteNewIDs(testA,trainUsers,trainItems)
+  testA <- tmp$testSet
+  deleted <- tmp$deleted
+  pred = predict(means,testA[,-3], minN=minN, haveUserCovs=haveUserCovs, 
+     haveItemCovs=haveItemCovs, haveBoth=haveBoth)
   # calculate accuracy 
-  result = list(nFullData=nrowRatIn,trainprop=trainprop,numpredna=numpredna)
-  testA$pred = round(testA$pred)
+  result = list(nFullData=nrowRatIn,trainprop=trainprop,preds=pred,
+     deleted=deleted)
   # accuracy measures
-  exact <- mean(round(testA$pred) == testA[,3],na.rm=TRUE)
-  mad <- mean(abs(testA$pred-testA[,3]),na.rm=TRUE)
-  rms= sqrt(mean((testA$pred-testA[,3])^2,na.rm=TRUE))
+  exact <- mean(round(pred) == testA[,3],na.rm=TRUE)
+  mad <- mean(abs(pred-testA[,3]),na.rm=TRUE)
+  rms= sqrt(mean((pred-testA[,3])^2,na.rm=TRUE))
   # if just guess mean
   meanRat <- mean(testA[,3],na.rm=TRUE)
   overallexact <- 
@@ -60,23 +63,67 @@ xvalMM <- function(ratingsIn, trainprop=0.5, minN=0,
      overallexact=overallexact,
      overallmad=overallmad,
      overallrms=overallrms)
-  ### result$idxs <- testIdxs
-  result$preds <- testA$pred
+  result$idxs <- testIdxs
+  result$preds <- pred
   result$actuals <- testA[,3]
   result$type <- 'MM'
   class(result) <- 'xvalb'
   result
 }
 
-# check
-checkxv <- function(trainprop=0.5,acc='mad') {
-   check <- 
-      data.frame(userID = c(1,3,2,1,2,3),itemID = c(1,1,3,2,3,3),ratings=5:10)
-   print(check)
-   print(xvalMM(check,trainprop,acc))
-   check$cv = c(1,2,8,6,3,3)  # covariate
-   print(check)
-   print(xvalMM(check,trainprop,acc))
+# any users or items in test set but not the training set?
+deleteNewIDs <- function(testSet,trainUsers,trainItems)
+{
+   deleted <- NULL  # named row numbers from the original full data
+   rns <- row.names(testSet)
+   tmp <- setdiff(unique(testSet[,1]),unique(trainUsers))
+   if (length(tmp) > 0) {
+      for (usr in tmp) {
+         tmp1 <- which(testSet[,1] == usr)
+         # tmp1 is ordinal row numbers within testSet; the latter may
+         # have shrunken in earlier iterations!
+         deleted <- c(deleted,row.names(testSet[tmp1,]))
+         testSet <- testSet[-tmp1,]
+      }
+   }
+   tmp <- setdiff(unique(testSet[,2]),unique(trainItems))
+   if (length(tmp) > 0) {
+      for (itm in tmp) {
+         tmp1 <- which(testSet[,2] == itm)
+         # tmp1 is ordinal row numbers within testSet; the latter may
+         # have shrunken in earlier iterations, here or above!
+         deleted <- c(deleted,row.names(testSet[tmp1,]))
+         testSet <- testSet[-tmp1,]
+      }
+   }
+   deleted <- unique(deleted)
+   list(testSet = testSet, deleted = deleted)
 }
 
+# check
+checkxv <- function() {
+   set.seed(999999)
+   check <- data.frame(
+      u=sample(1:5,12,replace=TRUE),
+      i=sample(11:15,12,replace=TRUE),
+      r=sample(21:25,12,replace=TRUE))
+   print(check) 
+   xvout <- xvalMM(check,0.5)
+   print(xvout$idxs)  # 1 6 7 8 11 12
+   print(xvout$deleted)  # "8" "11"
+   print(xvout$preds)
+   print(xvout$actuals)
+   check$cv = sample(31:35,12,replace=TRUE)  # covariate
+   print(check)
+   print(xvout)
+}
 
+# see how well covs do on small Ni users
+xvSmallNi <- function(ratIn,maxN,minN) {
+   ri1 <- as.character(ratIn[,1])
+   NiVals <- tapply(ri1,ri1,length)
+   smallNi <- which(NiVals <= maxN)
+   rows <- as.numeric(names(smallNi))
+   smallRatIn <- ratIn[rows,]
+   xvalMM(smallRatIn,trainprop=0.8,minN = minN,haveBoth=T)$acc
+}
