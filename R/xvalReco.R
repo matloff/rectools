@@ -44,9 +44,9 @@ xvalReco <- function(ratingsIn, trainprop = 0.5,
     testSet = getTestSet(ratingsIn, trainSet)
     res = trainReco(trainSet)
     totalPreds = predict(res,testSet)
-  }else {
+  } else {
+       res <- trainRecoPar(ratingsIn,rnk,cls) {
 
-SHOULDN'T WE USE trainRecoPar() HERE?
 
     require(partools)
     clusterEvalQ(cls,require(partools))
