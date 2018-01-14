@@ -1,38 +1,9 @@
-trainReco <- function(ratingsIn,rnk = 10)
- {
-   library(recosystem)
-   r <- Reco()
-   train_set <- 
-      data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
-   r$train(train_set,opts = list(dim=rnk)) 
-   P_file = out_file(tempfile())
-   Q_file = out_file(tempfile())
-   res = r$output(out_memory(),out_memory())
-   result <- list(P = res$P, Q = res$Q)
-   class(result) <- 'RecoS3'
-   result
- }
 
-predict.RecoS3 <- function(recoObj,testSet) {
-   p = recoObj$P
-   q = recoObj$Q
-   testSet$pred <- vector(length=nrow(testSet))
-   for(i in 1:nrow(testSet)){
-      j = testSet[i,1]
-      k = testSet[i,2]
-      if(j < nrow(p) || k < nrow(q)) #NA else
-         testSet$pred[i] <- p[j,] %*% q[k,]
-      else
-         testSet$pred[i] <- NA
-   }
-   testSet$pred
-}
-
-########## the remaining functions are for cross-validation:
+UNDER CONSTRUCTION
 
 # getTrainSet():
 # arguments:
-#    ratingsIn: as above
+#    ratingsIn: the usual raw input matrix, cols usrID, itmID, rating
 #    trainprop: probability that a row from ratingsIn is selected for
 #               the training set
 # value:
@@ -50,9 +21,9 @@ getTrainSet <- function(ratingsIn,trainprop = 0.5){
 # getTestSet():
 # returns the set-theoretic complement of the training set, to be used
 # as the test set
- getTestSet <- function(ratingsIn, trainSet){
+getTestSet <- function(ratingsIn, trainSet){
    ratingsIn[setdiff(1:nrow(ratingsIn),trainSet$trainidxs),]
- }
+}
  
 # xvalReco()
 # perform cross-validation
@@ -60,7 +31,7 @@ getTrainSet <- function(ratingsIn,trainprop = 0.5){
 #    ratingsIn: as above
 #    trainprop: as above
 #    cls: an R 'parallel' cluster
-#    rnk: as above
+#    rnk: rank of P,Q 
 # value: object of class 'xvalreco', consisting mainly of various
 # prediction accuracy measures, plus the number of NA predictions
 xvalReco <- function(ratingsIn, trainprop = 0.5,
@@ -70,16 +41,19 @@ xvalReco <- function(ratingsIn, trainprop = 0.5,
   library(parallel)
   if(is.null(cls)){
     trainSet = getTrainSet(ratingsIn, trainprop)
-    testSet= getTestSet(ratingsIn, trainSet)
+    testSet = getTestSet(ratingsIn, trainSet)
     res = trainReco(trainSet)
     totalPreds = predict(res,testSet)
   }else {
+
+SHOULDN'T WE USE trainRecoPar() HERE?
+
     require(partools)
     clusterEvalQ(cls,require(partools))
     distribsplit(cls, 'ratingsIn')
-    clusterExport(cls,c('trainReco','predict.Reco','getTestSet','getTrainSet'))
-    clusterEvalQ(cls, trainSet<- getTrainSet(ratingsIn,trainprop=0.5))
-    testSet= clusterEvalQ(cls, testSet<- getTestSet(ratingsIn,trainSet))
+    clusterEvalQ(cls,require(rectools))
+    clusterEvalQ(cls, trainSet <- getTrainSet(ratingsIn))
+    testSet = clusterEvalQ(cls, testSet< - getTestSet(ratingsIn,trainSet))
     testSet = mapply(c,testSet$ratings[1],testSet$ratings[2],SIMPLIFY = FALSE)
     clusterEvalQ(cls,resu <- trainReco(trainSet,rnk=10))
     allPreds = clusterEvalQ(cls, pred <- predict(ratingsIn,testSet))
