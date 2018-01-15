@@ -58,7 +58,7 @@ trainRecoPar <- function(ratingsIn,rnk = 10,cls,pqName='PQ')
    require(partools)
    clusterEvalQ(cls,require(recosystem))
    distribsplit(cls,'ratingsIn')
-   clusterExport(cls,c('rnk','pqName'),envir=environment())
+   clusterExport(cls,c('rnk','pqName','predict.RecoS3'),envir=environment())
 
    # note the possibility of some users being in some chunks but not others,
    # and same for items; at each node: we could add "fake" user and/or
@@ -120,13 +120,10 @@ predict.RecoS3par <- function(RecoS3parObj,testSet,cls)
    clusterExport(cls,c('RecoS3parObj','testSet'),envir=environment())
    # prep to call predict.RecoS3() at each worker node
    clusterEvalQ(cls,pq <- get(RecoS3parObj))
-   clusterEvalQ(cls,P <- pq$P)
-   clusterEvalQ(cls,Q <- pq$Q)
-   clusterEvalQ(cls,PandQ <- list(P=P,Q=Q))
-   clusterEvalQ(cls,class(PandQ) <- 'RecoS3')
+   clusterEvalQ(cls,class(pq) <- 'RecoS3')
    # now, do the prediction; some will return NA, due to a missing user
    # and item at one of the nodes
-   preds <- clusterEvalQ(cls,pred <- predict(PandQ,testSet))
+   preds <- clusterEvalQ(cls,pred <- predict(pq,testSet))
    # now average them 
    predmatrix <- matrix(unlist(preds),ncol=ncol(testSet),byrow=TRUE)
    colMeans(predmatrix,na.rm=TRUE)
