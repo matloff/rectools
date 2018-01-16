@@ -53,25 +53,24 @@ xvalReco <- function(ratingsIn, trainprop = 0.5,
                      cls = NULL,
                      rnk = 10)  
 {
-  library(recosystem)
-  library(parallel)
-  if(is.null(cls)){
+  require(recosystem)
     trainSet = getTrainSet(ratingsIn, trainprop)
     testSet = getTestSet(ratingsIn, trainSet)
-    res = trainReco(trainSet)
+  if(is.null(cls)){
+    res = trainReco(trainSet,rnk)
     totalPreds = predict(res,testSet)
   } else {
        # res <- trainRecoPar(ratingsIn,rnk,cls) {
-    require(partools)
-    clusterEvalQ(cls,require(partools))
-    distribsplit(cls, 'ratingsIn')
-    clusterEvalQ(cls,require(rectools))
-    clusterEvalQ(cls, trainSet <- getTrainSet(ratingsIn))
-    testSet = clusterEvalQ(cls, testSet< - getTestSet(ratingsIn,trainSet))
-    testSet = mapply(c,testSet$ratings[1],testSet$ratings[2],SIMPLIFY = FALSE)
-    clusterEvalQ(cls,resu <- trainReco(trainSet,rnk=10))
-    allPreds = clusterEvalQ(cls, pred <- predict(ratingsIn,testSet))
-    totalPreds = mapply(c,totalPreds[1],totalPreds[2],SIMPLIFY = FALSE)
+##    clusterEvalQ(cls,library(partools))
+##    distribsplit(cls, 'ratingsIn')
+##    clusterEvalQ(cls,library(rectools))
+##    clusterEvalQ(cls, trainSet <- getTrainSet(ratingsIn))
+##    testSet = clusterEvalQ(cls, testSet< - getTestSet(ratingsIn,trainSet))
+##    testSet = mapply(c,testSet$ratings[1],testSet$ratings[2],SIMPLIFY = FALSE)
+##    clusterEvalQ(cls,resu <- trainReco(trainSet,rnk=10))
+##    allPreds = clusterEvalQ(cls, pred <- predict(ratingsIn,testSet))
+    res <- trainRecoPar(trainSet,rnk,cls)
+    totalPreds <- predict(res,testSet,cls)
   }
   numpredna = sum(is.na(totalPreds))
   result = list(ndata = nrow(ratingsIn),trainprop = trainprop, 
