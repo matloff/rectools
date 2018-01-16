@@ -2,15 +2,17 @@
 # training and prediction routines, wrappers for such operations in the
 # 'recosytem' package
 
+# 'recosytem' approximates the (mostly unknown) 
+
 # it is assumed that user and item IDs are contiguous, starting at 1
 
 #############################  trainReco  ***************************
 
-# applies 'recosytem' to a training set
+# applies 'recosystem' to a training set
 
 # arguments:
 
-#    ratingsIn:  raw input matrix, cols usrID, itmID, rating
+#    ratingsIn:  raw input matrix, usrID, itmID, rating cols 
 #    rnk:  desired rank for the P,Q matrices
 
 # value:  object of class 'RecoS3', a list containing P and Q
@@ -117,7 +119,8 @@ predict.RecoS3 <- function(recoObj,testSet)
 
 predict.RecoS3par <- function(RecoS3parObj,testSet,cls) 
 {
-   clusterExport(cls,c('RecoS3parObj','testSet'),envir=environment())
+   clusterExport(cls,c('RecoS3parObj','predict.RecoS3','testSet'),
+      envir=environment())
    # prep to call predict.RecoS3() at each worker node
    clusterEvalQ(cls,pq <- get(RecoS3parObj))
    clusterEvalQ(cls,class(pq) <- 'RecoS3')
@@ -125,7 +128,7 @@ predict.RecoS3par <- function(RecoS3parObj,testSet,cls)
    # and item at one of the nodes
    preds <- clusterEvalQ(cls,pred <- predict(pq,testSet))
    # now average them 
-   predmatrix <- matrix(unlist(preds),ncol=ncol(testSet),byrow=TRUE)
+   predmatrix <- matrix(unlist(preds),ncol=nrow(testSet),byrow=TRUE)
    colMeans(predmatrix,na.rm=TRUE)
 }
 
