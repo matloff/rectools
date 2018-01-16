@@ -1,15 +1,23 @@
 
 ### UNDER CONSTRUCTION
 
+# cross-validation for 'recosystem'
+
+################### partiitioning routines ##########################
+
 # getTrainSet():
+
 # arguments:
-#    ratingsIn: the usual raw input matrix, cols usrID, itmID, rating
+#    ratingsIn: the usual raw input matrix, usrID, itmID, rating cols 
 #    trainprop: probability that a row from ratingsIn is selected for
 #               the training set
+
 # value:
 #    training set, in the format of ratingsIn, plus a component
 #    trainidxs, the indices of the training set in the original data
-getTrainSet <- function(ratingsIn,trainprop = 0.5){
+
+getTrainSet <- function(ratingsIn,trainprop = 0.5)
+{
    rownew = nrow(ratingsIn)
    trainRow = floor(trainprop*rownew)
    trainidxs = sample(1:rownew,trainRow)
@@ -19,24 +27,32 @@ getTrainSet <- function(ratingsIn,trainprop = 0.5){
 } 
 
 # getTestSet():
+
 # returns the set-theoretic complement of the training set, to be used
 # as the test set
-getTestSet <- function(ratingsIn, trainSet){
-   ratingsIn[setdiff(1:nrow(ratingsIn),trainSet$trainidxs),]
+
+getTestSet <- function(ratingsIn, trainSet)
+{
+   ratingsIn[-trainSet$trainidxs,]
 }
+
+################### main ftn: xvalReco() ##########################
  
 # xvalReco()
-# perform cross-validation
+
 # arguments:
-#    ratingsIn: as above
+
 #    trainprop: as above
 #    cls: an R 'parallel' cluster
 #    rnk: rank of P,Q 
+
 # value: object of class 'xvalreco', consisting mainly of various
 # prediction accuracy measures, plus the number of NA predictions
+
 xvalReco <- function(ratingsIn, trainprop = 0.5,
                      cls = NULL,
-                     rnk = 10)  {
+                     rnk = 10)  
+{
   library(recosystem)
   library(parallel)
   if(is.null(cls)){
