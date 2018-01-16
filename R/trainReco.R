@@ -132,6 +132,19 @@ predict.RecoS3par <- function(RecoS3parObj,testSet,cls)
    colMeans(predmatrix,na.rm=TRUE)
 }
 
+testTrainPredict <- function() 
+{
+   # the 2 sets of predictions should be within about 5% of each other
+   cls <- makeCluster(2)
+   setclsinfo(cls)
+   getML(datadir='~/Research/DataSets/MovieLens/ML100K/ml-100k')
+   set.seed(99999)
+   testSet <- uduu[sample(1:nrow(uduu),250),]
+   mlout <- trainReco(uduu,rnk=75)
+   predict(mlout,testSet)
+   mloutpar <- trainRecoPar(uduu,rnk=75,cls=cls)
+   predict(mloutpar,testSet,cls=cls)
+}
 
 ###############################  misc. ***************************##
 
