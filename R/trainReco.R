@@ -63,7 +63,7 @@ trainRecoPar <- function(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ')
    require(recosystem)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
-   distribsplit(cls,'ratingsIn',scramble=FALSE)
+   distribsplit(cls,'ratingsIn',scramble=TRUE)
    clusterExport(cls,c('rnk','nmf','pqName','predict.RecoS3'),
       envir=environment())
 
