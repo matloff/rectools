@@ -1,8 +1,10 @@
 
 # training and prediction routines, wrappers for such operations in the
-# 'recosytem' package
+# 'recosytem' package, including some parallel operations
 
-# 'recosytem' approximates the (mostly unknown) 
+# 'recosytem' approximates the (mostly unknown) user-ratings matrix A as
+# the product P'Q, with P and Q having specified rank 'rnk'; a number of
+# other tuning parameters are available besides rank, but not used here
 
 # it is assumed that user and item IDs are contiguous, starting at 1
 
@@ -12,19 +14,20 @@
 
 # arguments:
 
-#    ratingsIn:  raw input matrix, usrID, itmID, rating cols 
+#    ratingsIn:  raw input matrix, with cols usrID, itmID, rating 
 #    rnk:  desired rank for the P,Q matrices
+#    nmf:  if true, use NMF, otherwise SVD
 
 # value:  object of class 'RecoS3', a list containing P and Q
 
-trainReco <- function(ratingsIn,rnk = 10)
+trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
 {
    require(recosystem)
    r <- Reco()
    train_set <- 
       data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
-   r$train(train_set,opts = list(dim=rnk)) 
-   result = r$output(out_memory(),out_memory())
+   r$train(train_set,opts = list(dim=rnk,nmf=nmf)) 
+   result <- r$output(out_memory(),out_memory())
    class(result) <- 'RecoS3'
    result
 }
@@ -37,12 +40,13 @@ trainReco <- function(ratingsIn,rnk = 10)
 # their P'Q products at the manager, to get an overall P'Q (we could NOT
 # simply average the Ps and average the Qs, as they are not unique); but
 # it is assumed here that the full P'Q matrix may be too large to store at
-# the managerr
+# the manager 
 
-# breaks data into chunks, each of which is handled by a worker node,
-# and applies Reco; note that the code follows the partools "leave it
-# there" philosophy, retaining the P and Q matrices rather than
-# returning them to the manager node
+#instead, breaks data into chunks, each of which is handled by a worker
+#node, and applies Reco; note that the code follows the partools "leave
+#it there" philosophy, retaining the P and Q matrices rather than
+#returning them to the manager node
+
 
 # arguments:
 
@@ -54,13 +58,14 @@ trainReco <- function(ratingsIn,rnk = 10)
 
 # value:  object of class 'RecoS3par', consisting of pqName
 
-trainRecoPar <- function(ratingsIn,rnk = 10,cls,pqName='PQ') 
+trainRecoPar <- function(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ') 
 {
    require(recosystem)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
-   distribsplit(cls,'ratingsIn')
-   clusterExport(cls,c('rnk','pqName','predict.RecoS3'),envir=environment())
+   distribsplit(cls,'ratingsIn',scramble=FALSE)
+   clusterExport(cls,c('rnk','nmf','pqName','predict.RecoS3'),
+      envir=environment())
 
    # note the possibility of some users being in some chunks but not others,
    # and same for items; at each node: we could add "fake" user and/or
@@ -74,7 +79,7 @@ trainRecoPar <- function(ratingsIn,rnk = 10,cls,pqName='PQ')
       r <- Reco()
       train_set <- 
          data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
-      r$train(train_set,opts = list(dim=rnk))
+      r$train(train_set,opts = list(dim=rnk,nmf=nmf))
       res <- r$output(out_memory(),out_memory())
       assign(pqName,res,envir = .GlobalEnv)
       result <- pqName
