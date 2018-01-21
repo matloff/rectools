@@ -1,12 +1,14 @@
 \name{trainReco,predict.RecoS3,trainRecoPar,predict.RecoS3par}
 \alias{trainReco}
-\alias{predict.Reco}
+\alias{predict.RecoS3}
+\alias{trainRecoPar}
+\alias{predict.RecoS3par}
 
 \title{Recosystem Wrappers}
 
 \description{
 Convenience wrappers for specific aspects of the \code{recosystem}
-package, adding a parallel computation capability.
+package, including adding a parallel computation capability.
 }
 
 \usage{
@@ -30,9 +32,7 @@ package, adding a parallel computation capability.
 }
 
 \details{
-The function \code{trainReco} simply calls \code{r$train} on the input
-data.
-
+The training functions call \code{r$train} on the input data.
 The latter function returns several key components, including:
 
    \itemize{
@@ -47,16 +47,14 @@ The latter function returns several key components, including:
 The product of these two matricies consists of the predicted ratings of
 all users on all items.
 
-The function \code{predict.Reco} is a method for the generic function
-\code{predict}.
+The functions \code{predict.RecoS3} and are methods for the generic
+function \code{predict}.
 	
 }
 
 \examples{
-   ivl <- InstEval 
-   ivl$s <- as.numeric(ivl$s) 
-   ivl$d <- as.numeric(ivl$d) 
-   ivl3 <- ivl[,c(1,2,7)]
+   getInstEval()
+   ivl3 <- ivl[,1:3]
    set.seed(9999)
    trn <- trainReco(ivl3)
    onerec <- ivl3[1,]  # form dummy 1-rec data frame
@@ -64,9 +62,9 @@ The function \code{predict.Reco} is a method for the generic function
    onerec$s <- 788  
    onerec$d <- 28  
    onerec <- onerec[,-3]
-   predict(trn,onerec)  # 1.49
+   predict(trn,onerec)  # 1.95
 }
 
 \author{
-	Pooja Rajkumar and Norm Matloff
+	Pooja Rajkumar, Norm Matloff and Robin Yancey
 }
