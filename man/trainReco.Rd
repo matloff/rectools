@@ -1,8 +1,8 @@
-\name{trainReco,predict.Reco}
+\name{trainReco,predict.RecoS3,trainRecoPar,predict.RecoS3par}
 \alias{trainReco}
 \alias{predict.Reco}
 
-\title{Parallelized Recosystem}
+\title{Recosystem Wrappers}
 
 \description{
 Convenience wrappers for specific aspects of the \code{recosystem}
@@ -10,18 +10,23 @@ package, adding a parallel computation capability.
 }
 
 \usage{
-	trainReco(ratingsIn,rnk = 10)
-	predict.Reco(recoObj,predSet)
+	trainReco(ratingsIn,rnk=10,nmf=FALSE)
+	predict.RecoS3(recoObj,testSet)
+	trainRecoPar(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ')
+	predict.RecoS3par(RecoS3parObj,testSet,cls)
 }
 
 \arguments{
 	\item{ratingsIn}{Input data frame, training set. Within-row format 
            is (UserID, ItemID, rating).}
-        \item{recoObj}{Object of type \code{'Reco'}, output of
-           \code{trainReco}.}
-        \item{predSet}{Data to be predicted, having within-row format
-           (UserID, ItemID).}
 	\item{rnk}{Desired rank for the matrix factors.}
+	\item{nmf}{If true, use NMF, otherwise SVD.}
+        \item{recoObj}{Object of class \code{'RecoS3'}, output of
+           \code{trainReco}.}
+        \item{RecoS3parObj}{Object of class \code{'RecoS3par'}, output of
+           \code{trainRecoPar}.}
+        \item{testSet}{Data to be predicted, having within-row format
+           (UserID, ItemID).}
 }
 
 \details{
