@@ -17,6 +17,8 @@ covratingness <- function(ratingsIn,splitCol) {
    tmp[ratingsIn[,splitCol]]
 }
 
+############  prep for some specific example dat sets ##############
+
 # get the instructor evaluation data, and set it up, including
 # covariates
 
@@ -76,9 +78,50 @@ getML <- function(needDownload=FALSE,datadir='./ml-100k')  {
    gassign('uduuui','uduuui')
 }
 
-# not-so-stealth global assignment
+############################ global assignment #######################
+
+# CRAN bans the use of global variables, but they are sometimes needed;
+# one of the CRAN maintainers, Kurt Hornik, encouraged me to use "trick"
+# workarounds, so that I would not have to have the CRAN people
+# "manually" check my requests for exceptions; gassign() is a vehicle
+# for this
+
+# assigns 'rhsname' to the global 'gname', from one level below global
+
 gassign <- function(gname,rhsname) {
    cmd <- paste(gname,'<<-',rhsname)
    eval(parse(text=cmd),envir=parent.frame())
 }
 
+################### xval partiitioning routines ########################
+
+# getTrainSet():
+
+# arguments:
+#    ratingsIn: the usual raw input matrix, usrID, itmID, rating cols 
+#    trainprop: probability that a row from ratingsIn is selected for
+#               the training set
+
+# value:
+#    training set, in the format of ratingsIn, plus a component
+#    trainidxs, the indices of the training set in the original data
+
+getTrainSet <- function(ratingsIn,trainprop = 0.5)
+{
+   rownew = nrow(ratingsIn)
+   trainRow = floor(trainprop*rownew)
+   trainidxs = sample(1:rownew,trainRow)
+   trainSet = ratingsIn[trainidxs,]
+   trainSet$trainidxs = trainidxs
+   trainSet
+} 
+
+# getTestSet():
+
+# returns the set-theoretic complement of the training set, to be used
+# as the test set
+
+getTestSet <- function(ratingsIn, trainSet)
+{
+   ratingsIn[-trainSet$trainidxs,]
+}
