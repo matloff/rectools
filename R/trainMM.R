@@ -1,46 +1,62 @@
 
-# TODO:
+# Method of Moments approach
 
-#    allow covariates for the items
+# TODO:
 
 #    accommodate matrices in addition to data frames, in order to all
 #    use of bigmemory package
 
+#    allow covariates that jointly involve users and items, e.g. general
+#    moviegoer genre preferences
+
 #  modified version of earlier trainMM() etc., May 27, 2017, with
-#  new approach to use of covariates X_ijk for user i, item j;
-#  NOTE: the covariates will be centered
+#  new approach to use of covariates X_ijk for user i, item j
+
+#  NOTE: the covariates will be centered; and since we will be
+#  regressing a random effect alpha or beta on the covariates, then the
+#  regression should be without an intercept term (use of -1 when
+#  specifying predictors in lm())
+
+#  NOTE: regression function choices currently limited to lm(), glm(),
+#  as the -1 option is used in specifying that there is no intercept
+#  term
 
 #  basic model is
 #  
 #     Y = mu + alpha + beta + eps 
 #    
-#  for simplicity, the following is at the population level
+#  for simplicity, the following discussion is at the population level
 
-#  after regressing alpha and/or beta on the vector X of covariates
-#  then either alpha or beta or both are replaced by X in the
-#  prediction; e.g. if X depends only on the user covariates, then our
-#  prediction is
+#  after regressing alpha and/or beta on the vector X of covariates then
+#  either alpha or beta or both are replaced by X in the prediction;
+#  e.g. if X depends only on the user covariates V, then our prediction
+#  is
 #
 #     mu + gamma'V + beta
 #
-#  where gamma is the vector of regression coefficients; with sampled
-#  data rather than population quantities, this means 
+#  where gamma is the vector of regression coefficients; if we have both
+#  user covariates V and item covariates W, the prediction is
+#
+#     mu + gamma'V + eta'W
+
+#  at the sample level, mu + gamma'V + beta becomes
 #
 #     hat(Y_ij) = hat(mu) + hat(gamma)'V_i + hat(beta_j)
 #
-#  with hat(mu) being the overall mean of the Y data and hat(bet_j)
-#  begin Y.j, then mean of Y_ij over all i
+#  set Y.. to the mean of all Y_ij, Y.j the mean of all Y_i,j fixed j
+#  etc.; the hat(mu) is Y.., hat(beta_j) is Y.j - Y.. etc.
 
+# the coefficients can be estimated via lm() without a const term
 
-#      E(Y_ij | U_ijk = sum_k gamma_k U_ik + sum_k delta_k V_jk
-
-# and the coefficients can be estimated via lm() without a const term
+#########################  trainMM()  ##############################
 
 # arguments:
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
-#              covariates); data frame
-#   
+#              covariates); data frame; user covariates, if any, must
+#              precede item covariates, if any
+#   userCovsStartCol: start column of user covariates, if any
+#   itemCovsStartCol: start column of user covariates, if any
 
 # value:
 
@@ -49,9 +65,12 @@
 #      Y..: grand mean, est of mu 
 #      Yi.: vector of mean ratings for each user, ests. of alpha_i
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
-#      regObj: if have covariates, regression output, e.g. coefs
+#      lmoutUsr: object returned by running regression analysis for user
+#                covariates, if any
+#      lmoutItm: object returned by running regression analysis for item
+#                covariates, if any
 
-trainMM <- function(ratingsIn)
+trainMM <- function(ratingsIn,userCovsStartCol,itemCovsStartCol)
 {
   users <- ratingsIn[,1]
   items <- ratingsIn[,2]
@@ -71,6 +90,10 @@ trainMM <- function(ratingsIn)
   ydots$trainingItems <- unique(items)
   haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
+     covCols <- 
+        getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
+     usrCovCols <- covCols[1]
+     itmCovCols <- covCols[2]
      # as noted above, center the covs
      tmp <- scale(ratingsIn[,-(1:3)],scale=FALSE)
      ratingsIn[,-(1:3)] <- tmp
@@ -79,10 +102,19 @@ trainMM <- function(ratingsIn)
      ydots$covmeans <- attr(tmp,'scaled:center')
      # regress ratings against covariates, no constant term
      # NOTE:  could do a weighted least squares, using the Ni, 
-     # but since the latter is random too, not needed
-     frml <- as.formula(paste(nms[3],'~ .-1'))
-     lmout <- lm(frml,data=ratingsIn[,-(1:2)])
-     ydots$lmout <- lmout
+     # but treating the latter is random too, not needed;
+     # user covs first, if any
+     if (!is.null(usrCovCols)) {
+        frml <- as.formula(paste(nms[3],'~ .-1'))
+        lmout <- lm(frml,data=ratingsIn[,c(3,usrCovCols)])
+        ydots$lmoutUsr <- lmout
+     }
+     # now item covs, if any
+     if (!is.null(usrCovCols)) {
+        frml <- as.formula(paste(nms[3],'~ .-1'))
+        lmout <- lm(frml,data=ratingsIn[,c(3,itmCovCols)])
+        ydots$lmoutItm <- lmout
+     }
      Ni <- tapply(ratings,users,length) # number of ratings per user
      ydots$Ni <- Ni
   } 
@@ -90,21 +122,24 @@ trainMM <- function(ratingsIn)
   invisible(ydots)
 }
 
+######################  predict.ydotsMM()  ############################
+
 # predict() method for the 'ydotsMM' class
 
 # in predicting for user i, the code looks at N_i, the number of ratings
 # by user i; if that number is below minN, the prediction comes from
-# user i's covariate information (if available) instead of from the Yi.
-# and Y.j values
+# user i's covariate information (if available) instead of from the
+# Y.j values
 
 # arguments
 
+#    ydotsObj: the output of trainMM()
 #    testSet: data frame in same form as ratingsIn above except that there 
 #             is no ratings column; thus covariates, if any, are shifted
-#             leftward one slot, i.e. userID, itemID, cov1, cov2...
-#    ydotsObj: the output of trainMM()
+#             leftward one slot, i.e. userID, itemID, cov1, cov2...;
+#             note that the names must be the same as in the training set
 #    minN:  if Ni < minN and have covariates, use the latter instead of
-#           Yi. and Y.j; see above
+#           Yi.; see above
 
 # returns vector of predicted values for testSet
 predict.ydotsMM = function(ydotsObj,testSet,minN=0, 

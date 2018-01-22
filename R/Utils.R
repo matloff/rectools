@@ -1,4 +1,8 @@
 
+# utility functions
+
+##############  ratingness(), covratingness() ########################
+
 # finds and returns the number of ratings for each user (splitCol = 1)
 # or each item (splitCol = 2), for the input data frame ratingsIn, in
 # UserID | ItemID | Rating ...  format
@@ -17,7 +21,7 @@ covratingness <- function(ratingsIn,splitCol) {
    tmp[ratingsIn[,splitCol]]
 }
 
-############  prep for some specific example dat sets ##############
+############  prep for some specific example data sets ##############
 
 # get the instructor evaluation data, and set it up, including
 # covariates
@@ -125,3 +129,24 @@ getTestSet <- function(ratingsIn, trainSet)
 {
    ratingsIn[-trainSet$trainidxs,]
 }
+
+########################  getCovCols()  ##############################
+
+# breaks the covariates column numbers into user covariates and item
+# covariates; the former, if any, must precede the latter, if any;
+# column ranges are returned as vectors, e.g. 4:6
+
+getCovCols
+   <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn)
+{
+   ncolsTot <- ncolRatingsIn
+   if(!is.null(userCovsStartCol)) {
+      usrCols <- if (is.null(itemCovsStartCol) 3:ncolsTot else
+                 3:(itemCovsStartCol-1)
+   } else usrCols <- NULL
+   if(!is.null(itemCovsStartCol)) {
+      itmCols <- itemCovsStartCol:ncolsTot
+   } else itmCols <- NULL
+   c(usrCols,itmCols)
+}
+
