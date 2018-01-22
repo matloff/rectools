@@ -65,6 +65,8 @@
 #      Y..: grand mean, est of mu 
 #      Yi.: vector of mean ratings for each user, ests. of alpha_i
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
+#      usrCovCols: column numbers of the user covariates, if any
+#      itmCovCols: column numbers of the item covariates, if any
 #      lmoutUsr: object returned by running regression analysis for user
 #                covariates, if any
 #      lmoutItm: object returned by running regression analysis for item
@@ -88,12 +90,13 @@ trainMM <- function(ratingsIn,userCovsStartCol,itemCovsStartCol)
   ydots <- list(grandMean=Y..,usrMeans=Yi.,itmMeans=Y.j)
   ydots$trainingUsers <- unique(users)
   ydots$trainingItems <- unique(items)
+  covCols <- getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
+  usrCovCols <- covCols[1]
+  itmCovCols <- covCols[2]
+  ydots$usrCovCols <- usrCovCols
+  ydots$itmCovCols <- itmCovCols
   haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
-     covCols <- 
-        getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
-     usrCovCols <- covCols[1]
-     itmCovCols <- covCols[2]
      # as noted above, center the covs
      tmp <- scale(ratingsIn[,-(1:3)],scale=FALSE)
      ratingsIn[,-(1:3)] <- tmp
@@ -142,8 +145,7 @@ trainMM <- function(ratingsIn,userCovsStartCol,itemCovsStartCol)
 #           Yi.; see above
 
 # returns vector of predicted values for testSet
-predict.ydotsMM = function(ydotsObj,testSet,minN=0, 
-      haveUserCovs=FALSE,haveItemCovs=FALSE,haveBoth=FALSE) 
+predict.ydotsMM = function(ydotsObj,testSet,minN=0) 
 {
    # see comment on as.character() above; this gets tricky; we will move
    # back and forth between referring to elements by name and by ordinal
