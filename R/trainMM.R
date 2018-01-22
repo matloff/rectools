@@ -162,17 +162,15 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
    else {
-      if (sum(haveUserCovs+haveItemCovs+haveBoth) == 0)
-         stop('with covariates, one of the "have*" must be TRUE')
-      if (minN == 0) 
-         stop('with covariates, need minN > 0')
+      usrCovCols <- ydotsObj@usrCovCols
+      itmCovCols <- ydotsObj$itmCovCols
+      if (minN == 0) stop('with covariates, need minN > 0')
       # must center the covariates, using the same centering information
       # used in ydotsObj
       colmeans <- ydotsObj$covmeans
-      testSet[,-(1:2)] <- 
-         scale(testSet[,-(1:2)],center=colmeans,scale=FALSE)
-      # which ones to use regression on
-      # first, ordinal indices, then named indices
+      testSet[,-(1:2)] <- testSet[,-(1:2)] - colmeans
+      # which cases to use covariates on, i.e. which users or cases have
+      # only a small number of data points?
       smallNiUsersWhich <- which(ydotsObj$Ni[ts1] < minN)
       smallNiUsers <- ts1[smallNiUsersWhich]
       bigNiUsersWhich <- which(ydotsObj$Ni[ts1] >= minN)
