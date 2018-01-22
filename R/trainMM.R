@@ -156,7 +156,7 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
    itmMeans <- ydotsObj$itmMeans[ts2]  # with named elements
    # make all terms in sums below have consistent element names!
    names(itmMeans) <- ts1
-   pred <- vector(length=nrow(testSet))
+   nTest <- nrow(testSet)
    haveCovs <- ncol(testSet) > 2
    if (!haveCovs) {
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
@@ -177,29 +177,23 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       bigNiUsers <- ts1[bigNiUsersWhich]
       smallNiItems <- ts2[ydotsObj$Ni[ts1] < minN]
       bigNiItems <- ts2[ydotsObj$Ni[ts1] >= minN]
-      # could use ifelse() here, but gets quite messy; better to fill in
-      # the 'pred' vector's 2 portions in 2 separate actions
-      # non-regression cases:
-      pred[bigNiUsersWhich] <- 
-         ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
-            ydotsObj$grandMean
-      # regression cases:
-      pred[smallNiUsersWhich] <- 
-         if (haveBoth) {  # have both user and item covs
-            ydotsObj$grandMean + predict(ydotsObj$lmout,
-               testSet[smallNiUsersWhich,-(1:2),drop=FALSE])
-         } else if (haveUserCovs) {  # have user covs only
-            # note that + and - Y.. terms cancel
-            predict(ydotsObj$lmout,
-               testSet[smallNiUsersWhich,-(1:2),drop=FALSE]) +
-               ydotsObj$itmMeans[smallNiItems]
-         } else  {  # have item covs only
-            # note that + and - Y.. terms cancel
-            predict(ydotsObj$lmout,
-               testSet[smallNiUsersWhich,-(1:2),drop=FALSE]) +
-               ydotsObj$usrMeans[smallNiUsers]
-         }
-   }  # end covs section
+      # they all start with the mu term
+      Y.. <- ydotsObj$grandMean
+      pred <- rep(Y..,nTest) 
+      # now the alpha and beta terms; first find the regression-based
+      # predictions of all alpha, beta, even though only use some
+      predalpha <- predict(ydotsObj$lmoutUsr,testSet[,usrCovCols])
+      predbeta <- predict(ydotsObj$lmoutItm,testSet[,usrCovCols])
+      # now add those to the cases of small numbers of users or items
+      pred[smallNiUsers] <- pred[smallNiUsers] + predalpha[smallNiUsers]
+      pred[smallNiItems] <- pred[smallNiItems] + predalpha[smallNiItems]
+      # now add the non-regression predictions to the cases of big numbers 
+      # of users or items
+      pred[bigNiUsers] <- pred[bigNiUsers] + usrMeans[bigNiUsers] - Y.. 
+      pred[bigNiItems] <- pred[bigNiItems] + itmMeans[bigNiItems] - Y..
+      # pred[bigNiUsersWhich] <- 
+      #    ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
+      #       ydotsObj$grandMean
    names(pred) <- NULL  # use ordinal indexing
    pred
 }
