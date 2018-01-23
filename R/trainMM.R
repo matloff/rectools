@@ -194,6 +194,7 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       # pred[bigNiUsersWhich] <- 
       #    ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
       #       ydotsObj$grandMean
+   }
    names(pred) <- NULL  # use ordinal indexing
    pred
 }
