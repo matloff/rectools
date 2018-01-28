@@ -97,6 +97,13 @@ predict.ydotsMLE(ydotsObj,testSet)
 }
 
 \examples{
+# toy example
+rts <- rbind(c(1,3,1),c(4,2,2),c(4,3,1),c(1,2,4))
+rts <- data.frame(rts)
+ydots <- trainMM(rts)
+ydots  # e.g. usrMeans['4'] = 1.5
+predict(ydots,rbind(c(1,2),c(4,3),c(4,2)))  # 3.5, 0.5, 2.5 
+# instructor evaluation data
 getInstEval()
 # run the training data, no covariates
 ydout <- trainMLE(ivl[,1:3]) 
