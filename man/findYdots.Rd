@@ -98,29 +98,7 @@ predict.ydotsMLE(ydotsObj,testSet)
 }
 
 \examples{
-# lme4 data set, needs some prep
-data(InstEval)
-ivl <- InstEval
-# convert from factors
-ivl$s <- as.numeric(ivl$s)
-ivl$d <- as.numeric(ivl$d)
-ivl$studage <- as.numeric(ivl$studage)
-ivl$lectage <- as.numeric(ivl$lectage)
-ivl$service <- as.numeric(ivl$service)
-# make correct format, choose 
-ivl <- ivl[,c(1,2,7,3:6)]
-# create dummy variables in place of dept
-library(dummies)
-dms <- dummy(ivl$dept)
-dms <- as.data.frame(dms)
-# numeric names won't work, so change
-dnms <- names(dms)
-for (i in 1:length(dnms)) 
-   dnms[i] <- paste('x',dnms[i],sep='') 
-names(dms) <- dnms
-dms$dept2 <- NULL
-ivl$dept <- NULL
-ivl <- cbind(ivl,dms)
+getInstEval()
 # run the training data, no covariates
 ydout <- trainMLE(ivl[,1:3]) 
 # form a test set to illustrate prediction

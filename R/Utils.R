@@ -44,6 +44,9 @@ getInstEval <- function()  {
    dms$dept2 <- NULL
    ivl$dept <- NULL
    ivl <- cbind(ivl,dms)
+   dnames <- names(ivl)[7:19]
+   dnames <- paste('dep',dnames,sep='')
+   names(ivl)[7:19] <- dnames
    gassign('ivl','ivl')
 }
 
@@ -136,12 +139,11 @@ getTestSet <- function(ratingsIn, trainSet)
 # covariates; the former, if any, must precede the latter, if any;
 # column ranges are returned as vectors, e.g. 4:6
 
-getCovCols
-   <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn)
+getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn)
 {
    ncolsTot <- ncolRatingsIn
    if(!is.null(userCovsStartCol)) {
-      usrCols <- if (is.null(itemCovsStartCol) 3:ncolsTot else
+      usrCols <- if (is.null(itemCovsStartCol)) 3:ncolsTot else
                  3:(itemCovsStartCol-1)
    } else usrCols <- NULL
    if(!is.null(itemCovsStartCol)) {

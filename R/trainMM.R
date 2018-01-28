@@ -72,7 +72,7 @@
 #      lmoutItm: object returned by running regression analysis for item
 #                covariates, if any
 
-trainMM <- function(ratingsIn,userCovsStartCol,itemCovsStartCol)
+trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 {
   users <- ratingsIn[,1]
   items <- ratingsIn[,2]
