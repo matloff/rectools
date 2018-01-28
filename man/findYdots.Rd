@@ -1,4 +1,4 @@
-\name{trainMM,trainMLE,predict.ydotsMM,predict.ydotsMLE,plot.ydotsMM,trainMM,trainMLE}
+\name{trainMM,trainMLE,predict.ydotsMM,predict.ydotsMLE,plot.ydotsMM}
 \alias{trainMM}
 \alias{trainMLE}
 \alias{trainMM}
@@ -17,7 +17,6 @@ capability.  Various plots can be displayed.
 
 \usage{
 trainMM(ratingsIn,regressYdots=FALSE,minN) 
-trainMM(ratingsIn,regressYdots=FALSE,cls=NULL) 
 predict.ydotsMM(ydotsObj,testSet) 
 plot.ydotsMM(ydotsObj,ratingsIn) 
 trainMLE(ratingsIn,cls=NULL) 
@@ -103,15 +102,17 @@ getInstEval()
 ydout <- trainMLE(ivl[,1:3]) 
 # form a test set to illustrate prediction
 testSet <- ivl[c(3,8),]
-head(testSet)
 # say want to predict how well students 1 and 3 would like instructor 12
 testSet[1,2] <- 12
 testSet[2,2] <- 12
 # predict
 predict(ydout,testSet[,1:2])  # 4.272660 4.410612
-# try using the covariates
-ydout <- trainMM(ivl)
+# MM without covariates
+ydout <- trainMM(ivl[,1:3])
 predict(ydout,testSet[,-3])  # 5.141009 5.137111 
+# try using the covariates
+ydout <- trainMM(ivl,userCovsStartCol=4,itemCovsStartCol=5)
+predict(ydout,testSet[,-3],minN=5)  # 5.141009 5.137111 
 }
 
 \author{

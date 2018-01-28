@@ -162,7 +162,7 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
    else {
-      usrCovCols <- ydotsObj@usrCovCols
+      usrCovCols <- ydotsObj$usrCovCols
       itmCovCols <- ydotsObj$itmCovCols
       if (minN == 0) stop('with covariates, need minN > 0')
       # must center the covariates, using the same centering information
