@@ -144,7 +144,7 @@ getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn
    ncolsTot <- ncolRatingsIn
    if(!is.null(userCovsStartCol)) {
       usrCols <- if (is.null(itemCovsStartCol)) 3:ncolsTot else
-                 3:(itemCovsStartCol-1)
+                 4:(itemCovsStartCol-1)
    } else usrCols <- NULL
    if(!is.null(itemCovsStartCol)) {
       itmCols <- itemCovsStartCol:ncolsTot

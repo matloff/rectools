@@ -71,6 +71,8 @@
 #                covariates, if any
 #      lmoutItm: object returned by running regression analysis for item
 #                covariates, if any
+#      Ni.: vector of number of ratings by each user
+#      N.j: vector of number of ratings of each item
 
 trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 {
@@ -102,7 +104,7 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
      ratingsIn[,-(1:3)] <- tmp
      # need to record the centering process in order to use predict()
      # later, so the mean of each covariate is saved here
-     ydots$covmeans <- attr(tmp,'scaled:center')
+     ydots$covMeans <- attr(tmp,'scaled:center')
      # regress ratings against covariates, no constant term
      # NOTE:  could do a weighted least squares, using the Ni, 
      # but treating the latter is random too, not needed;
@@ -118,8 +120,10 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
         lmout <- lm(frml,data=ratingsIn[,c(3,itmCovCols)])
         ydots$lmoutItm <- lmout
      }
-     Ni <- tapply(ratings,users,length) # number of ratings per user
-     ydots$Ni <- Ni
+     Ni. <- tapply(ratings,users,length) # number of ratings per user
+     ydots$Ni. <- Ni.
+     N.j <- tapply(ratings,users,length) # number of ratings per item
+     ydots$N.j <- N.j
   } 
   class(ydots) = 'ydotsMM'
   invisible(ydots)
@@ -129,10 +133,10 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 
 # predict() method for the 'ydotsMM' class
 
-# in predicting for user i, the code looks at N_i, the number of ratings
+# in predicting for user i, the code looks at Ni., the number of ratings
 # by user i; if that number is below minN, the prediction comes from
 # user i's covariate information (if available) instead of from the
-# Y.j values
+# Y.j values; similarly for N.j
 
 # arguments
 
@@ -142,7 +146,7 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 #             leftward one slot, i.e. userID, itemID, cov1, cov2...;
 #             note that the names must be the same as in the training set
 #    minN:  if Ni < minN and have covariates, use the latter instead of
-#           Yi.; see above
+#           Yi., etc.; see above
 
 # returns vector of predicted values for testSet
 predict.ydotsMM = function(ydotsObj,testSet,minN=0) 
@@ -152,9 +156,11 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
    # index, i.e. w['b'] vs. w[28]
    ts1 <- as.character(testSet[,1])  # user IDs, char form
    ts2 <- as.character(testSet[,2])  # item IDs, char form
-   usrMeans <- ydotsObj$usrMeans[ts1]  # with named elements
-   itmMeans <- ydotsObj$itmMeans[ts2]  # with named elements
-   # make all terms in sums below have consistent element names!
+   usrMeans <- ydotsObj$usrMeans[ts1]  # using named elements
+   itmMeans <- ydotsObj$itmMeans[ts2]  # using named elements
+   # make all terms in sums below have consistent element names!;
+   # essentially, we are naming the elements of both usrMeans and
+   # itmMeans after the elements of testSet[,1]
    names(itmMeans) <- ts1
    nTest <- nrow(testSet)
    haveCovs <- ncol(testSet) > 2
@@ -167,11 +173,12 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       if (minN == 0) stop('with covariates, need minN > 0')
       # must center the covariates, using the same centering information
       # used in ydotsObj
-      colmeans <- ydotsObj$covmeans
+      colmeans <- ydotsObj$covMeans
+      colmeans <- matrix(rep(colmeans,nTest),nrow=nTest,byrow=T)
       testSet[,-(1:2)] <- testSet[,-(1:2)] - colmeans
       # which cases to use covariates on, i.e. which users or cases have
       # only a small number of data points?
-      smallNiUsersWhich <- which(ydotsObj$Ni[ts1] < minN)
+      smallNiUsersWhich <- which(ydotsObj$Ni.[ts1] < minN)
       smallNiUsers <- ts1[smallNiUsersWhich]
       bigNiUsersWhich <- which(ydotsObj$Ni[ts1] >= minN)
       bigNiUsers <- ts1[bigNiUsersWhich]
