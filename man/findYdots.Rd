@@ -16,10 +16,9 @@ capability.  Various plots can be displayed.
 }
 
 \usage{
-trainMM(ratingsIn,regressYdots=FALSE,minN) 
-predict.ydotsMM(ydotsObj,testSet) 
+trainMM(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL) 
+predict.ydotsMM(ydotsObj,testSet,minN) 
 plot.ydotsMM(ydotsObj,ratingsIn) 
-trainMLE(ratingsIn,cls=NULL) 
 trainMLE(ratingsIn,cls=NULL) 
 predict.ydotsMLE(ydotsObj,testSet) 
 }
@@ -27,8 +26,10 @@ predict.ydotsMLE(ydotsObj,testSet)
 \arguments{
   \item{ratingsIn}{Input data frame.  Within-row format is UserID,
      ItemID, Rating and optional covariates.}
-  \item{regressYdots}{If TRUE, apply linear regression to the latent
-     factors.}
+  \item{userCovsStartCol}{Column number in \code{ratingsIn} at which the
+     user-specific covariates begin.}
+  \item{itemCovsStartCol}{Column number in \code{ratingsIn} at which the
+     item-specific covariates begin.}
   \item{cls}{An R \code{parallel} cluster.}
   \item{minN}{If a prediction is to be made on a user with fewer than
      this number of ratings and if there are covariates, predict from
@@ -45,10 +46,11 @@ predict.ydotsMLE(ydotsObj,testSet)
    consecutive, starting with 1.
 
    All functions here implement latent-factor models for recommender
-   systems.  They add the capability of using covariates, and in some
-   cases enable parallel computation.
+   systems.  They add the capability of using covariates, e.g. age and
+   gender, and in some cases enable parallel computation.  MLE and
+   Method of Moments approaches are offered.
 
-   The basic model is 
+   The basic model without covariates, is 
 
    mean rating = overall mean + user effect + item effect
 
@@ -56,28 +58,39 @@ predict.ydotsMLE(ydotsObj,testSet)
 
    mean rating = linear covariates effect + user effect + item effect
 
+   This is the model we use in the MLE case. But for the Method of
+   Moments, we essentially have an identifiability problem:  The
+   estimated effect for user i would be the sample mean of all his/her
+   ratings, minus the overall sample mean of all ratings, minus the
+   linear covariates effect.  The latter would then get added right back
+   in to the sum, resulting in no impact of the covariates.  (It is not
+   a direct issue with MLE, due to the additional assumption that the
+   user effects are normally distributed.)  So, in the MM case, our
+   model is
+
+   mean rating = linear covariates effect + item effect
+
+   So, by offering both MLE and MM approaches, the package not only
+   allows two different estimation methods, but also two different
+   models.  The MLE structural model is more general than that of MM,
+   but has more restrictive distributional assumptions.
+
+   The covariates are assumed to begin in column 4 of \code{ratingsIn},
+   with the user-related ones, if any, coming first, and then the
+   item-related ones, if any.
+
    The functions \code{trainMM} and \code{trainMLE} work on a
    training set, returning objects that later can be used to predict new
-   cases.
+   cases.  The former is much faster than the latter and has a smaller
+   memory footprint, though both shortcomings of MLE are ameliorated to
+   some extent via parallel computation.
 
    The \code{trainMLE} function is primarily a wrapper that sets up
    Maximum Likelihood Estimation (assuming normal user and item effects)
    for a crossed-effects model in the \code{lme4} function \code{lmer}.
-   As the computation for that function can be lengthy,
-   \code{trainMLE} also enables parallelizing the computation.
-
-   The \code{trainMM} function uses the Methods of Moments instead
-   of MLE.  It is much faster, and thus at present does not have a
-   parallel computation capability.
-
-   In order to accommodate possibility that the user latent factor is a
-   stronger predictor than the one for items, or vice versa, the option
-   \code{regressYdots = TRUE} for \code{trainMM} regresses ratings
-   against user and item latent factors, enabling later prediction using
-   the resulting coefficients.  This is not needed for
-   \code{trainMLE}, since \code{lmer} calculates the Best Linear
-   Unbiased Predictors, thus indirectly assigning weights to the user
-   and item effects.
+   As the computation for that function can be lengthy and
+   memory-intensive, \code{trainMLE} also enables 
+   parallelizing the computation.
 
    Plotting:  Calling \code{plot(ydotsObj,ratingsIn)} invokes
    \code{plot.ydotsMM}.  Several plots are displayed, including density

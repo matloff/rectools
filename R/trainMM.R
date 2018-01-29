@@ -199,19 +199,3 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
    pred
 }
 
-# test case
-checkMM <- function() {
-   set.seed(99999)
-   d <- data.frame(u=sample(11:15,12,replace=T),i=sample(26:30,12,replace=T),
-           r=sample(1:5,12,replace=T),cv1=runif(12))
-   ts <- data.frame(u=sample(11:15,5,replace=T),i=sample(26:30,5,replace=T),
-           cv1=runif(5))
-   yd <- trainMM(d)
-   predict(yd,ts)
-   # 5.4166667 0.6666667 0.6666667 2.6666667 3.6666667
-   predict(yd,ts,haveItemCovs=T,minN=2)
-   # 5.4166667 -0.3306984  0.5349273  3.0111962  3.6666667
-   predict(yd,ts,haveUserCovs=T,minN=2)
-   # 5.416667 1.669302 2.534927 3.011196 3.666667
-}
-
