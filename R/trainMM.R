@@ -95,8 +95,8 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
   covCols <- getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
   usrCovCols <- covCols[1]
   itmCovCols <- covCols[2]
-  ydots$usrCovCols <- usrCovCols
-  ydots$itmCovCols <- itmCovCols
+  ydots$usrCovCols <- usrCovCols  # vector of column numbers
+  ydots$itmCovCols <- itmCovCols  # vector of column numbers
   haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
      # as noted above, center the covs
@@ -109,13 +109,13 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
      # NOTE:  could do a weighted least squares, using the Ni, 
      # but treating the latter is random too, not needed;
      # user covs first, if any
-     if (!is.null(usrCovCols)) {
+     if (!is.na(usrCovCols)) {
         frml <- as.formula(paste(nms[3],'~ .-1'))
         lmout <- lm(frml,data=ratingsIn[,c(3,usrCovCols)])
         ydots$lmoutUsr <- lmout
      }
      # now item covs, if any
-     if (!is.null(usrCovCols)) {
+     if (!is.na(itmCovCols)) {
         frml <- as.formula(paste(nms[3],'~ .-1'))
         lmout <- lm(frml,data=ratingsIn[,c(3,itmCovCols)])
         ydots$lmoutItm <- lmout
@@ -168,14 +168,23 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
    else {
-      usrCovCols <- ydotsObj$usrCovCols
+      usrCovCols <- ydotsObj$usrCovCols 
       itmCovCols <- ydotsObj$itmCovCols
+      # shift left due to no Ratings column
+      if (!is.na(usrCovCols)) usrCovCols <- usrCovCols - 1 
+      if (!is.na(itmCovCols)) itmCovCols <- itmCovCols - 1 
       if (minN == 0) stop('with covariates, need minN > 0')
       # must center the covariates, using the same centering information
       # used in ydotsObj
       colmeans <- ydotsObj$covMeans
       colmeans <- matrix(rep(colmeans,nTest),nrow=nTest,byrow=T)
       testSet[,-(1:2)] <- testSet[,-(1:2)] - colmeans
+      # if have user covs: 
+      
+      
+      which ones have counts below minN?
+
+
       # which cases to use covariates on, i.e. which users or cases have
       # only a small number of data points?
       smallNiUsersWhich <- which(ydotsObj$Ni.[ts1] < minN)
@@ -189,8 +198,11 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       pred <- rep(Y..,nTest) 
       # now the alpha and beta terms; first find the regression-based
       # predictions of all alpha, beta, even though only use some
-      predalpha <- predict(ydotsObj$lmoutUsr,testSet[,usrCovCols])
-      predbeta <- predict(ydotsObj$lmoutItm,testSet[,usrCovCols])
+      browser()
+      if(!is.na(usrCovCols)) predalpha <- 
+            predict(ydotsObj$lmoutUsr,testSet[,usrCovCols,drop=F])
+      if(!is.na(itmCovCols)) predbeta <- 
+            predict(ydotsObj$lmoutItm,testSet[,itmCovCols,drop=F])
       # now add those to the cases of small numbers of users or items
       pred[smallNiUsers] <- pred[smallNiUsers] + predalpha[smallNiUsers]
       pred[smallNiItems] <- pred[smallNiItems] + predalpha[smallNiItems]
