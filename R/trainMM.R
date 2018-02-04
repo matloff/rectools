@@ -182,7 +182,7 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       # if have user covs: 
       
       
-      which ones have counts below minN?
+      #### which ones have counts below minN?
 
 
       # which cases to use covariates on, i.e. which users or cases have
