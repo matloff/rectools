@@ -136,8 +136,8 @@ cosDist <- function(x,y,wtcovs,wtcats) {
       yvec <- c(yvec,wtcovs*y$cats)
    }
 
-   xvec %*% yvec / (l2(xvec) * l2(yvec))
+   xvec %*% yvec / (l2a(xvec) * l2a(yvec))
 }
 
-l2 <- function(x) sqrt(x %*% x)
+l2a <- function(x) sqrt(x %*% x)
 
