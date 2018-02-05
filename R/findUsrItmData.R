@@ -3,19 +3,19 @@
 
 #    (user ID, item ID, rating)
 
-# and form an R list for user data, with class 'usrData'; each
-# element of the list will be of class 'usrDatum', and will have
-# components as seen in 'value' below 
+# and form an R list for user data, with class 'usrData'; each element
+# of the list will be of class 'usrDatum', representing one user's data,
+# and will have components as seen in 'value' below 
 
 # arguments:
 
 #    ratingsIn: input data, whose first 3 cols are user ID, item ID
 #               and rating 
 #    usrCovs: data frame of user covariates, e.g. gender and age, one
-#             row per user
+#             row per user; optional
 #    itmCats: data frame of item categories, e.g. genre for movies, one
 #             row of booleans per item; categories need not be 
-#             mutually exclusive
+#             mutually exclusive; optional
 #    fileOut: if specified, save the value returned by the function
 #             using R save(), with file name fileOut
 
@@ -25,9 +25,9 @@
 #    each such element is itself an R list, an object of class
 #    'usrDatum', with these components:
 #
-#       userID: the ID of this user
-#       ratings: vector of ratings made by this user
-#       itms: IDs of items rated by this user
+#       userID:  the ID of this user
+#       ratings:  vector of ratings made by this user
+#       itms:  IDs of items rated by this user
 #       cvrs:  covariate data for this user, if any
 #       cats:  item category data for this user, if any; j-th element
 #              is proportion of items rated by this user that are 
@@ -37,8 +37,8 @@
 
 formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
 
-   # covariates, if any, should be in usrCovs; check to see if user has
-   # included them
+   # covariates, if any, should be in usrCovs, not in ratingsIn; check
+   # to see if user has included them
    if (ncol(ratingsIn) > 3)
       stop('ratingsIn more than 3 columns')
 
@@ -60,7 +60,7 @@ formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
       if (nitms != nitems) stop('itmCats has too many/few rows')
    }
 
-   # rete will ultimately be the return value, a list of lists as
+   # retval will ultimately be the return value, a list of lists as
    # described above.
    retval <- vector('list',length(rownums))  
 

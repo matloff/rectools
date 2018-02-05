@@ -6,8 +6,8 @@
 # neighbors
 
 # note:  the cosine, though standard, has certain problems; e.g., its
-# scale-free nature means two users are very "close" even if one is
-# almost exactly double the other; other choices for distance measure
+# scale-free nature means two users are very "close" even if, say, one 
+# is almost exactly double the other; other choices for distance measure
 # will be added
 
 # arguments:
