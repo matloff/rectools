@@ -62,11 +62,11 @@ formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
 
    # retval will ultimately be the return value, a list of lists as
    # described above.
-   retval <- vector('list',length(rownums))  
+   retval <- list()
 
    for (i in 1:nusers) {
       whichrows <- rownums[[i]]  # row nums in ratingsIn for user i
-      userID <- ratingsIn[whichrows[1],1]
+      userID <- as.character(ratingsIn[whichrows[1],1])
       # start building usrDatum object for this user
       retval[[userID]] <- list()
       retval[[userID]]$userID <- userID
@@ -105,3 +105,9 @@ findInputRow <- function(ratingsIn,usrID,itmID) {
    ratingsIn[ratingsIn[,1]==usrID & ratingsIn[,2]==itmID,]
 }
 
+testFormUserData <- function() 
+{
+   rts <- rbind(c(1,3,5),c(4,2,2),c(4,1,2),c(5,6,2),c(1,6,5))
+   formUserData(rts) 
+
+}
