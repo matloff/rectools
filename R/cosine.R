@@ -3,9 +3,10 @@
 
 # covariates (e.g. age, gender) and item type preferences (e.g.
 # preferred movie genres) are allowed in distance computation for
-# neighbors
+# neighbors; the covariates are assumed here to be user covariates, as
+# this is what findUsrItmData.R gives
 
-# note:  the cosine, though standard, has certain problems; e.g., its
+# NOTE:  the cosine, though standard, has certain problems; e.g., its
 # scale-free nature means two users are very "close" even if, say, one 
 # is almost exactly double the other; other choices for distance measure
 # will be added
@@ -26,8 +27,7 @@
 
 # value:
 
-#    predicted ratings for newData
-
+#    predicted ratings for newData for the item newItem
 
 predict.usrData <- function(origData,newData,newItem,
       k,wtcovs=NULL,wtcats=NULL) {
@@ -51,17 +51,6 @@ predict.usrData <- function(origData,newData,newItem,
    # items list for this user matches the item of interest, newItem; if
    # such a j exists, then (j,rating) will be returned, otherwise
    # (NA,NA); defined for use by sapply() below
-   ###   checkNewItem <- function(oneUsr) {
-   ###     tmp <- match(oneUsr$itms, newItem)
-   ###     if (all(is.na(tmp))) {
-   ###       c(NA,NA)
-   ###     }
-   ###     else{
-   ###       whichOne <- which(!is.na(tmp))
-   ###       c(whichOne,oneUsr$ratings[whichOne])
-   ###     }
-   ###   }
-   # NM refactor, 10/18/17
    checkNewItem <- function(oneUsr) {
       whichOne <- which(oneUsr$itms == newItem)
       if (length(whichOne) == 0) {
