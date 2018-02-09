@@ -132,7 +132,7 @@ l2a <- function(x) sqrt(x %*% x)
 testCos <- function() 
 {
     rts <- rbind(c(1, 3, 5), c(4, 2, 2), c(4, 1, 2), c(5, 6, 
-        2), c(1, 6, 5))
+        2), c(1, 6, 5),c(1,2,1))
     ud <- formUserData(rts)
 }
 
