@@ -43,8 +43,8 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
       oneNewDatum <- testData[[l]]
       for (j in 1:length(oneNewDatum$ratings)) {
          userID <- oneNewDatum$userID
-         saveRat <- oneNewDatum$ratings[[userID]]
-         oneNewDatum$ratings[[userID]] <- 0
+         saveRat <- oneNewDatum$ratings[userID]
+         oneNewDatum$ratings[userID] <- 0
          predVal <- predict(trainData,oneNewDatum,saveRat,k)
          preds <- rbind(preds,c(predVal,saveRat))
          oneNewDatum$ratings[userID] <- saveRat
