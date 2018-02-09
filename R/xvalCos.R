@@ -1,6 +1,6 @@
 
-# splits input data into training and test sets, fits "ydots" model on
-# the former, then predicts the latter
+# splits input data into training and test sets, applies
+# findUsrItmData.R to the former, then predicts the latter
 
 # arguments:
 
@@ -17,7 +17,7 @@
 
 #    accuracy value
 
-## IMPORTANT NOTE: see note about userIDs in findUserData.R
+## IMPORTANT NOTE: see note about character-based userIDs in findUserData.R
 
 xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    wtcovs=NULL,wtcats=NULL,
@@ -40,14 +40,11 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    testData <- formUserData(testSet,usrCovs,itmCats)
    preds <- c(NULL,NULL)
    for (l in 1:length(testData)) {
-# cat('l = ',l,'\n')
-# if (l == 11) browser()
       oneNewDatum <- testData[[l]]
       for (j in 1:length(oneNewDatum$ratings)) {
          userID <- oneNewDatum$userID
-         saveRat <- oneNewDatum$ratings[userID]
-         ## NM: what if ratings start at 0?
-         oneNewDatum$ratings[userID] <- 0
+         saveRat <- oneNewDatum$ratings[[userID]]
+         oneNewDatum$ratings[[userID]] <- 0
          predVal <- predict(trainData,oneNewDatum,saveRat,k)
          preds <- rbind(preds,c(predVal,saveRat))
          oneNewDatum$ratings[userID] <- saveRat

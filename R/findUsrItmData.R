@@ -72,6 +72,8 @@ formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
       retval[[userID]]$userID <- userID
       retval[[userID]]$itms <- ratingsIn[whichrows,2]
       retval[[userID]]$ratings <- ratingsIn[whichrows,3]
+      names(retval[[userID]]$ratings) <- as.character(retval[[userID]]$itms) 
+
       if (!is.null(usrCovs))
          # change from data frame row to numeric vector
          retval[[userID]]$cvrs <- as.numeric(usrCovs[userID,])
