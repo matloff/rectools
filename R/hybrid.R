@@ -100,30 +100,31 @@ hybdpredict.usrData <- function(datain,newData,newItem,
   sapply(k, findKnghbourRtng)
 }
 
+# duplicate!
 # cosDist() find cosine distance between x and y, elements of an object
 # of 'usrData' class; only items rated in both x and y are used; if none
 # exist, then return NaN
-cosDist <- function(x,y,wtcovs,wtcats) {
-  # rated items in common
-  commItms <- intersect(x$itms[[1]],y$itms[[1]])
-  if (is.null(commItms)| length(commItms)==0) return(NaN)
-  # where are they in x and y?
-  xwhere <- which(!is.na(match(x$itms[[1]],commItms)))
-  ywhere <- which(!is.na(match(y$itms[[1]],commItms)))
-  xrats <- x$ratings[xwhere,]
-  yrats <- y$ratings[ywhere,]
-  cosTot <- xrats[[1]] %*% yrats[[1]]
-  xl2 <- sum(xrats^2)
-  yl2 <- sum(yrats^2)
-  if (!is.null(wtcovs)) {
-    cosTot <- cosTot + wtcovs * x$cvrs %*% y$cvrs
-    xl2 <- xl2 + sum((wtcovs*x$cvrs)^2)
-    yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
-  }
-  if (!is.null(wtcats)) {
-    cosTot <- cosTot + wtcats * x$cats %*% t(y$cats)
-    xl2 <- xl2 + sum((wtcovs*x$cats)^2)
-    yl2 <- yl2 + sum((wtcovs*y$cats)^2)
-  }
-  cosTot / sqrt(xl2 * yl2)
-}
+### cosDist <- function(x,y,wtcovs,wtcats) {
+###   # rated items in common
+###   commItms <- intersect(x$itms[[1]],y$itms[[1]])
+###   if (is.null(commItms)| length(commItms)==0) return(NaN)
+###   # where are they in x and y?
+###   xwhere <- which(!is.na(match(x$itms[[1]],commItms)))
+###   ywhere <- which(!is.na(match(y$itms[[1]],commItms)))
+###   xrats <- x$ratings[xwhere,]
+###   yrats <- y$ratings[ywhere,]
+###   cosTot <- xrats[[1]] %*% yrats[[1]]
+###   xl2 <- sum(xrats^2)
+###   yl2 <- sum(yrats^2)
+###   if (!is.null(wtcovs)) {
+###     cosTot <- cosTot + wtcovs * x$cvrs %*% y$cvrs
+###     xl2 <- xl2 + sum((wtcovs*x$cvrs)^2)
+###     yl2 <- yl2 + sum((wtcovs*y$cvrs)^2)
+###   }
+###   if (!is.null(wtcats)) {
+###     cosTot <- cosTot + wtcats * x$cats %*% t(y$cats)
+###     xl2 <- xl2 + sum((wtcovs*x$cats)^2)
+###     yl2 <- yl2 + sum((wtcovs*y$cats)^2)
+###   }
+###   cosTot / sqrt(xl2 * yl2)
+### }

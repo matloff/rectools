@@ -30,8 +30,8 @@
 #    predicted ratings for newData for the item newItem
 
 predict.usrData <- function(origData,newData,newItem,
-      k,wtcovs=NULL,wtcats=NULL) {
-
+      k,wtcovs=NULL,wtcats=NULL) 
+{
    # check that newData has the covs and cats if and only if the
    # training data did
    traincovs <- !is.null(origData$usrCovs)
@@ -68,8 +68,6 @@ predict.usrData <- function(origData,newData,newItem,
    
    # we need to get rid of the users who didn't rate newItem
    whoHasIt <- which(!is.na(found[1,]))
-   # whoHasIt[i] is the index, i.e. user ID, of the i-th user who has
-   # rated newData
    if (is.null(whoHasIt) | length(whoHasIt) == 0) 
       return(NA)  # no one rated this item
    origDataRatedNI <- origData[whoHasIt]
@@ -98,7 +96,7 @@ predict.usrData <- function(origData,newData,newItem,
    sapply(k, findKnghbourRtng)
 }
 
-# find cosine distance between x and y, elements of an object
+# find cosine distance between x and y, objects
 # of 'usrData' class
 #
 # only items rated in both x and y are used; if none
@@ -107,7 +105,8 @@ predict.usrData <- function(origData,newData,newItem,
 #  wtcovs: weight to put on covariates; NULL if no covs
 #  wtcats: weight to put on item categories; NULL if no cats
 
-cosDist <- function(x,y,wtcovs,wtcats) {
+cosDist <- function(x,y,wtcovs=NULL,wtcats=NULL) 
+{
    # rated items in common
    commItms <- intersect(x$itms,y$itms)
    if (length(commItms)==0) return(NaN)
@@ -129,4 +128,11 @@ cosDist <- function(x,y,wtcovs,wtcats) {
 }
 
 l2a <- function(x) sqrt(x %*% x)
+
+testCos <- function() 
+{
+    rts <- rbind(c(1, 3, 5), c(4, 2, 2), c(4, 1, 2), c(5, 6, 
+        2), c(1, 6, 5))
+    ud <- formUserData(rts)
+}
 
