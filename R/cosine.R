@@ -1,5 +1,22 @@
 
-# nearest neighbor prediction via "cosine" method
+# nearest neighbor prediction via "cosine" method:
+
+# the user has already called formUserData() on the training set, and
+# now wishes to predict a new case; the question is, what rating would
+# the user newData give to item newItem?
+
+# first, the cases in the training set for which a rating for newItem is
+# available are found; then each such case is compared to newData, by
+# computing the "cosine" between the training case and newData
+
+# the "cosine" between two cases A and B is defined according to the
+# items rated in common between them; the dot product (in the linear
+# algebra sense) of the ratings of A and the ratings of B, among the
+# items in common, then divided by the product of the norms of those two
+# vectors
+
+# we then find the prediction by averaging the ratings of newItem among
+# the k training cases having the highest cosine with newData 
 
 # covariates (e.g. age, gender) and item type preferences (e.g.
 # preferred movie genres) are allowed in distance computation for
@@ -131,8 +148,9 @@ l2a <- function(x) sqrt(x %*% x)
 
 testCos <- function() 
 {
-    rts <- rbind(c(1, 3, 5), c(4, 2, 2), c(4, 1, 2), c(5, 6, 
-        2), c(1, 6, 5),c(1,2,1),c(1,1,5))
+    rts <- rbind(c(1, 3, 5), c(4, 2, 2), c(4, 1, 2), c(5, 6,2), 
+       c(1, 6, 5),c(1,2,1),c(1,1,5))
     ud <- formUserData(rts)
+    print(predict(ud,ud[['r']],3,1))  # should print 5
 }
 
