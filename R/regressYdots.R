@@ -40,7 +40,9 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
    x <- cbind(uMeans,iMeans,covs)
    y <- ratingsIn[,3]
    if (regModel == 'lm') return(lm(y ~ x))
-   else if (regModel == 'rf') 
+   else if (regModel == 'rf') {
+      require(randomForest)
       return(randomForest(x,y))
+   }
 }
 
