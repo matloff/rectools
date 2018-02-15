@@ -37,12 +37,18 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
    uMeans <- usrMeans[usrsChar]
    iMeans <- itmMeans[itmsChar]
    # uMeans, iMeans have length same as nrow(ratingsIn)
-   x <- cbind(uMeans,iMeans,covs)
+   xy <- data.frame(uMeans,iMeans,covs,ratingsIn[,3])
+   x <- data.frame(uMeans,iMeans,covs)
    y <- ratingsIn[,3]
-   if (regModel == 'lm') return(lm(y ~ x))
-   else if (regModel == 'rf') {
+   names(xy) <- c('uMeans','iMeans',names(covs),'rats')
+   if (regModel == 'lm') return(lm(rats ~ .,data=xy)) 
+   if (regModel == 'rf') {
       require(randomForest)
       return(randomForest(x,y))
+   } 
+   if (regModel == 'ctree') {
+      require(partykit)
+      return(ctree(rats ~ .,data=xy))
    }
 }
 
