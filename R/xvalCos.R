@@ -41,11 +41,17 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    preds <- c(NULL,NULL)
    for (l in 1:length(testData)) {
       oneNewDatum <- testData[[l]]
-      for (j in 1:length(oneNewDatum$ratings)) {
-         userID <- oneNewDatum$userID
-         saveRat <- oneNewDatum$ratings[userID]
-         oneNewDatum$ratings[userID] <- 0
-         predVal <- predict(trainData,oneNewDatum,saveRat,k)
+      userID <- oneNewDatum$userID
+      newUserRatings <- oneNewDatum$ratings
+      newUserItems <- oneNewDatum$itms
+      # now predict each of this new user's ratings, pretending
+      # momentarily that the user hadn't rated those items
+      for (j in 1:length(newUserItems)) {
+         pretendNewUser <- oneNewDatum
+         pretendRatings <- newUserRatings[-j]
+         pretendItems <- newUserItems[-j]
+         predVal <- 
+            predict(trainData,pretendNewUser,newUserItems[j],k)
          preds <- rbind(preds,c(predVal,saveRat))
          oneNewDatum$ratings[userID] <- saveRat
       }
