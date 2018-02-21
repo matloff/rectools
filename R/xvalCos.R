@@ -21,7 +21,7 @@
 
 xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    wtcovs=NULL,wtcats=NULL,
-   trainprop=0.5)
+   trainprop=0.8)
 {
    # split into random training and validation sets 
    nrowRatIn = nrow(ratingsIn)
@@ -36,24 +36,27 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    # now set up training set for cosine analysis
    trainData <- formUserData(trainingSet,usrCovs,itmCats)
    # for each user i in the test data, find the items rated by user i in
-   # the test data, then "predict" them
+   # the test data, then "predict" them (ignoring the known values)
    testData <- formUserData(testSet,usrCovs,itmCats)
-   preds <- c(NULL,NULL)
+   preds <- c(NULL,NULL)  # row i will be (predicted value, actual value)
    for (l in 1:length(testData)) {
       oneNewDatum <- testData[[l]]
-      userID <- oneNewDatum$userID
-      newUserRatings <- oneNewDatum$ratings
-      newUserItems <- oneNewDatum$itms
       # now predict each of this new user's ratings, pretending
-      # momentarily that the user hadn't rated those items
-      for (j in 1:length(newUserItems)) {
-         pretendNewUser <- oneNewDatum
-         pretendRatings <- newUserRatings[-j]
-         pretendItems <- newUserItems[-j]
-         predVal <- 
-            predict(trainData,pretendNewUser,newUserItems[j],k)
-         preds <- rbind(preds,c(predVal,saveRat))
-         oneNewDatum$ratings[userID] <- saveRat
+      # momentarily that the user hadn't rated the given item
+      newUserItems <- oneNewDatum$itms
+      nNewUserItems <- length(newUserItems)
+      # but if this new user doesn't have any information usable for
+      # nearest-neighbor computation, then skip him/her 
+      if (nNewUserItems > 1 || !is.null(usrCovs) || !is.null(itmCats)) {
+         for (j in 1:nNewUserItems) {
+            pretendNewUser <- oneNewDatum
+            pretendNewUser$ratings <- pretendNewUser$ratings[-j]
+            pretendNewUser$itms <- pretendNewUser$itms[-j]
+            predVal <- 
+               predict(trainData,pretendNewUser,newUserItems[j],k)
+            actualVal <- oneNewDatum$ratings[j]
+            preds <- rbind(preds,c(predVal,actualVal))
+         }
       }
    }
   numpredna = sum(is.na(preds[,1])) 
