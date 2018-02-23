@@ -70,6 +70,9 @@ predict.usrData <- function(origData,newData,newItem,
    # (NA,NA); defined for use by sapply() below
    checkNewItem <- function(oneUsr) {
       whichOne <- which(oneUsr$itms == newItem)
+      if (length(whichOne) > 1) {
+         stop("same user/item pair encountered more than once")
+      }
       if (length(whichOne) == 0) {
          return(c(NA,NA))
       }

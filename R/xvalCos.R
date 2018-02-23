@@ -27,12 +27,12 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    nrowRatIn = nrow(ratingsIn)
    numRows = floor(trainprop * nrowRatIn)
    trainIdxs = sample(1:nrowRatIn,numRows)
-   trainingSet = ratingsIn[trainIdxs, ]
+   trainingSet = ratingsIn[trainIdxs, ,drop=FALSE]
    trainRatings = trainingSet[,3]
    trainItems = trainingSet[,2]
    trainUsers = trainingSet[,1]
    testIdxs <- setdiff(1:nrowRatIn,trainIdxs)
-   testSet = ratingsIn[testIdxs,]
+   testSet = ratingsIn[testIdxs,,drop=FALSE]
    # now set up training set for cosine analysis
    trainData <- formUserData(trainingSet,usrCovs,itmCats)
    # for each user i in the test data, find the items rated by user i in
