@@ -12,10 +12,6 @@
 #   accmeasure: accuracy measure; 'exact', 'mad', 'rms' for
 #               prop of exact matches, mean absolute error, and
 #               root-mean square error
-#   regressYdots; if TRUE, apply lm() to the estimated latent factors
-#                 (and their product), enabling rating prediction from the
-#                 resulting linear function of the factors; currently
-#                 only implemented if have no covariates
 #   minN: see trainMM.R
 
 # value:

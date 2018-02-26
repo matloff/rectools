@@ -16,7 +16,7 @@ computation capability in some cases.
 }
 
 \usage{
-        xvalMM(ratingsIn, trainprop = 0.5, regressYdots = FALSE, minN = 0)
+        xvalMM(ratingsIn, trainprop = 0.5, minN = 0)
         xvalMLE(ratingsIn, trainprop = 0.5, cls = NULL) 
 	xvalReco(ratingsIn, trainprop = 0.5,cls = NULL,rnk = 10)
         xvalCos(ratingsIn, k, usrCovs = NULL, itmCats = NULL, wtcovs = NULL, 
@@ -37,8 +37,6 @@ computation capability in some cases.
 	\item{trainprop}{The fraction of ratingsIn we want to use for our 
 	training set}
 	\item{cls}{R \code{paralell} cluster.}
-        \item{regressYdots}{If TRUE, allow for different weights on
-           alpha and beta; see documentation for \code{trainMM}.}
 	\item{rnk}{Desired rank for \code{recosystem} analysis.}
         \item{xvalObj}{An object of class \code{'xvalb'}.}
         \item{whichIdxs}{A vector of indices of rows of the test set to
