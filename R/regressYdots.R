@@ -7,12 +7,15 @@
  
 # we then estimate the mu, alpha_i and beta_j using MM or MLE; in the MM
 # case, the estimated alpha_i is the mean of all known ratings from user
-# i, minus mu, wich is estimated by the overall mean of all ratings
+# i, minus mu, which is estimated by the overall mean of all ratings
  
 # but the above equation looks like a regression equation, so we might
-# treat alpha_i and beta_j as predictor variables in a regression context, 
-# along with any covariates like age and gender for users, and say,
-# movie genre for items
+# treat the estimates of alpha_i and beta_j, which are the per-user and
+# per-item sample means Yi. and Y.j, as predictor variables in a
+# regression context; it seems intuitive that Yi. and Y.j would be
+# reasonable candidtes for predictors, and of course one can add
+# along with any covariates, whether user-specific, item-specific or
+# pertaining to both user and item 
 
 # arguments:
 
