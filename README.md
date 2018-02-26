@@ -1,5 +1,7 @@
 # rectools
 
+## DOCUMENT NEEDS UPDATING
+
 ## Advanced Package for Recommender Systems
 
 ## FEATURES:
@@ -8,6 +10,8 @@
   category preferences.
 
 * Parallel computation.
+
+* Novel methods.
 
 * Novel variations on common models, e.g. a hybrid of
   NMF and k-Nearest Neighbor.

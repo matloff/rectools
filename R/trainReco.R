@@ -142,7 +142,7 @@ testTrainPredict <- function()
    # the 2 sets of predictions should be within about 5% of each other
    cls <- makeCluster(2)
    setclsinfo(cls)
-   getML(datadir='~/Research/DataSets/MovieLens/ML100K/ml-100k')
+   getML100K(datadir='~/Research/DataSets/MovieLens/ML100K/ml-100k')
    set.seed(99999)
    testSet <- uduu[sample(1:nrow(uduu),250),]
    mlout <- trainReco(uduu,rnk=75)

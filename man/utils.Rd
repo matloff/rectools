@@ -1,7 +1,7 @@
-\name{ratingness,covratingness,getML,getInstEval}
+\name{ratingness,covratingness,getML100K,getInstEval}
 \alias{ratingness}
 \alias{covratingness}
-\alias{getML}
+\alias{getML100K}
 \alias{getInstEval}
 
 \title{Utilities}
@@ -26,7 +26,7 @@ getInstEval()
    The InstEval and 100K MovieLens datasets serve as examples and
    testbeds for many methods in this package.  Since each requires some
    amount of setup, we encapsulate the setup operations in the
-   \code{getInstEval} and \code{getML} functions.
+   \code{getInstEval} and \code{getML100K} functions.
 
    The fact that some users rate more items may itself be useful  as a
    predictor.  Frequent rates, for instance, may be more liberal in

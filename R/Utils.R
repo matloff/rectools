@@ -50,14 +50,14 @@ getInstEval <- function()  {
    gassign('ivl','ivl')
 }
 
-# get the MovieLense 100K evaluation data, and set it up, including
+# get the MovieLens 100K evaluation data, and set it up, including
 # covariates
 
 # if needDownload, then download will be done; datadir is the directory
 # containing the data, assumed by default to be in the current working
 # directory
 
-getML <- function(needDownload=FALSE,datadir='./ml-100k')  {
+getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
    if (needDownload) {
       # 5 Mb
       download.file(
@@ -143,7 +143,7 @@ getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn
 {
    ncolsTot <- ncolRatingsIn
    if(!is.null(userCovsStartCol)) {
-      usrCols <- if (is.null(itemCovsStartCol)) 3:ncolsTot else
+      usrCols <- if (is.null(itemCovsStartCol)) 4:ncolsTot else
                  4:(itemCovsStartCol-1)
    } else usrCols <- NULL
    if(!is.null(itemCovsStartCol)) {
