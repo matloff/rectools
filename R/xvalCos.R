@@ -27,7 +27,9 @@ xvalCos <- function(ratingsIn,k,usrCovs=NULL,itmCats=NULL,
    nrowRatIn = nrow(ratingsIn)
    numRows = floor(trainprop * nrowRatIn)
    trainIdxs = sample(1:nrowRatIn,numRows)
+   print(trainIdxs)
    trainingSet = ratingsIn[trainIdxs, ,drop=FALSE]
+   print(trainingSet)
    trainRatings = trainingSet[,3]
    trainItems = trainingSet[,2]
    trainUsers = trainingSet[,1]
@@ -95,4 +97,14 @@ checkxv <- function(trainprop=0.5,acc='mad') {
    print(xvalMM(check,trainprop,acc))
 }
 
+testXvalCos <- function() {
+  set.seed(9999)
+  rts <- data.frame(matrix(ncol = 3, nrow = 0))
+  rts <- rbind(rts, c(1,1,5), c(1,2,4), c(1,3,6), c(1,4,4), c(1,6,2),
+               c(2,1,3), c(2,2,6), c(2,3,1), c(2,4,5), c(1,5,3),
+               c(3,1,4), c(3,2,3), c(3,5,4), c(3,6,3), c(3,7,2),
+               c(4,1,6), c(4,3,2), c(4,4,5), c(4,5,3), c(4,7,3),
+               c(5,1,3), c(5,2,6), c(5,3,2), c(5,5,4), c(5,6,1))
+  print(xvalCos(rts, 1)$acc)
+}
 
