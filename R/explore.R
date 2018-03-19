@@ -46,8 +46,7 @@ explore <- function(ratingsIn, plotcovs=TRUE) {
         plot(ratingsIn[,i], ratingsIn[,3], main=paste("Ratings vs ", covName), xlab="Covariate Values", ylab="Rating")
       }
       else {
-        barplot(table(ratingsIn[,i]), main=paste("Bar plot of", covName), xlab=c
-                olnames(ratingsIn)[i])
+        barplot(table(ratingsIn[,i]), main=paste("Bar plot of", covName), xlab=colnames(ratingsIn)[i])
         
         uniqueVals <- unique(ratingsIn[,i])
         covMeans <- sapply(uniqueVals, function(x) mean(ratingsIn[ which(ratingsIn[,i]==x), 3]))
