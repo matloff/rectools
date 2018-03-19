@@ -29,24 +29,21 @@ covratingness <- function(ratingsIn,splitCol) {
 getInstEval <- function()  {
    data(InstEval)
    ivl <- InstEval
-   # convert from factors
-   ivl$s <- as.numeric(ivl$s)
-   ivl$d <- as.numeric(ivl$d)
-   ivl$studage <- as.numeric(ivl$studage)
-   ivl$lectage <- as.numeric(ivl$lectage)
-   ivl$service <- as.numeric(ivl$service)
    # make correct format, choose 
    ivl <- ivl[,c(1,2,7,3:6)]
    # create dummy variables in place of dept
-   library(dummies)
-   dms <- dummy(ivl$dept)
+   dms <- factorToDummies(ivl$dept,'dpt')
    dms <- as.data.frame(dms)
-   dms$dept2 <- NULL
+   dms$dpt2 <- NULL
    ivl$dept <- NULL
    ivl <- cbind(ivl,dms)
-   dnames <- names(ivl)[7:19]
-   dnames <- paste('dep',dnames,sep='')
-   names(ivl)[7:19] <- dnames
+   # convert from factors
+   ivl$s <- as.character(ivl$s)
+   ivl$d <- as.character(ivl$d)
+   ivl$y <- as.numeric(ivl$y)
+   ivl$service <- as.numeric(ivl$service == 1)
+   ivl$studage <- as.numeric(ivl$studage)
+   ivl$lectage <- as.numeric(ivl$lectage)
    gassign('ivl','ivl')
 }
 
@@ -151,4 +148,20 @@ getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn
    } else itmCols <- NULL
    c(usrCols,itmCols)
 }
+
+# create a data frame of dummy variables from the factor f; col names
+# will optionally be prefixed by prfx
+factorToDummies <- function(f,prfx=NULL) {  
+   lf <- length(f)
+   d <- data.frame(z=rep(0,lf))
+   for (l in levels(f)) {
+      tmp <- as.integer(f == l)
+      nm <- as.character(l)
+      if (!is.null(prfx)) nm <- paste(prfx,nm,sep='')
+      d[[nm]] <- tmp
+   }
+   d$z <- NULL
+   d
+}
+
 
