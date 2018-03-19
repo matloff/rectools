@@ -6,7 +6,8 @@ Author@R:
     person("Pooja" "Rajkumar", role="aut",email="prajkumar@ucdavis.edu"), 
     person("Ariel" "Shin", role-c("aut"), email="arishin@ucdavis.edu"),
     person("Robin" "Yancey", role-c("aut"), email="reyancey@ucdavis.edu"),
-    person("Joseph" "Lewis", role-c("aut"), email="joelewis@ucdavis.edu")
+    person("Joseph" "Lewis", role-c("aut"), email="joelewis@ucdavis.edu"),
+    person("Melanie" "Zhange", role-c("aut"), email="mlnzhang@ucdavis.edu")
    )
 Maintainer: Norm Matloff <nsmmatloff@ucdavis.edu>
 Date: 1/21/2018
