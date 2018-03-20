@@ -1,7 +1,5 @@
 # rectools
 
-## DOCUMENT NEEDS UPDATING
-
 ## Advanced Package for Recommender Systems
 
 ## FEATURES:
@@ -11,24 +9,56 @@
 
 * Parallel computation.
 
-* Novel methods.
-
-* Novel variations on common models, e.g. a hybrid of
-  NMF and k-Nearest Neighbor.
+* New methods, and novel variations on common models. 
 
 * Plotting.
 
 * Focus group finder.
 
-* NMF, ANOVA, cosine models all in one package.
-
-* Some functions new, others enhancements of existing libraries.
-
 ## Overview and Examples
 
+Let's start with a concrete example, the **InstEval** data that is
+bundled with the ##lmer4## package, which is included by ##rectools##.
+The data consist of student valuations of instructors at the famous
+Swiss university ZTH.
+
+For convenience, ##rectools## includes a function that loads this data,
+processes it (e.g. creating dummy variables for the school's
+departments), and assigning the result to **ivl**:
+
+``` R
+> getInstEval()
+> head(ivl)
+  s    d y studage lectage service dpt15 dpt5 dpt10 dpt12 dpt6 dpt7 dpt4
+dpt8
+1 1 1002 5       1       2       0     0    0     0     0    0    0    0
+0
+2 1 1050 2       1       1       1     0    0     0     0    1    0    0
+0
+3 1 1582 5       1       2       0     0    0     0     0    0    0    0
+0
+4 1 2050 3       1       2       1     0    0     0     0    0    0    0
+0
+5 2  115 2       1       1       0     0    1     0     0    0    0    0
+0
+6 2  756 4       1       1       0     0    1     0     0    0    0    0
+0
+  dpt9 dpt14 dpt1 dpt3 dpt11
+1    0     0    0    0     0
+2    0     0    0    0     0
+3    0     0    0    0     0
+4    0     0    0    1     0
+5    0     0    0    0     0
+6    0     0    0    0     0
+```
+
+In that second record, for instance, Student 1 gave a rating of 2 to
+Instructor 1050.  The class was a service class (i.e. for nonmajors) by
+Department 6.
 ### Random effects ANOVA model:
 
-A simple random effects latent factor model is
+A simple statistical random effects latent factor model, often called a
+*baseline* model in the recsys literature, is
 
 E(Y) =  &mu; + &alpha;<sub>i</sub> + &beta;<sub>j</sub>
 
@@ -49,11 +79,6 @@ Yi. + Y.j - Y..
 Computation is simple, with estimation conducted by our function
 **trainMM()**; prediction is done on the output by our function
 **predict.ydotsMM()**.
-
-A novel enhancement in the package is to allow for different weights to
-be given to the &alpha;<sub>i</sub> and &beta;<sub>j</sub> components in
-the MM version.  (With MLE it wouldn't matter, just changing the
-variances.)
 
 We do make MLE available.  Here &alpha;<sub>i</sub> and
 &beta;<sub>j</sub> are assumed to have independent normal distributions
