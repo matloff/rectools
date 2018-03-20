@@ -7,7 +7,7 @@ Author@R:
     person("Ariel" "Shin", role-c("aut"), email="arishin@ucdavis.edu"),
     person("Robin" "Yancey", role-c("aut"), email="reyancey@ucdavis.edu"),
     person("Joseph" "Lewis", role-c("aut"), email="joelewis@ucdavis.edu"),
-    person("Melanie" "Zhange", role-c("aut"), email="mlnzhang@ucdavis.edu")
+    person("Melanie" "Zhang", role-c("aut"), email="mlnzhang@ucdavis.edu")
    )
 Maintainer: Norm Matloff <nsmmatloff@ucdavis.edu>
 Date: 3/19/2018
