@@ -146,7 +146,7 @@ getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn
    if(!is.null(itemCovsStartCol)) {
       itmCols <- itemCovsStartCol:ncolsTot
    } else itmCols <- NULL
-   c(usrCols,itmCols)
+   list(usrCols=usrCols,itmCols=itmCols)
 }
 
 # create a data frame of dummy variables from the factor f; col names

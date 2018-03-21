@@ -17,9 +17,9 @@
 #  regression should be without an intercept term (use of -1 when
 #  specifying predictors in lm())
 
-#  NOTE: regression function choices currently limited to lm(), glm(),
-#  as the -1 option is used in specifying that there is no intercept
-#  term
+#  NOTE: regression function choices limited to lm(), glm(), as the -1
+#  option is used in specifying that there is no intercept term; lm()
+#  only, for now
 
 #  basic model is
 #  
@@ -39,7 +39,7 @@
 #
 #     mu + gamma'V + eta'W
 
-#  at the sample level, mu + gamma'V + beta becomes
+#  at the sample level, then for instance mu + gamma'V + beta becomes
 #
 #     hat(Y_ij) = hat(mu) + hat(gamma)'V_i + hat(beta_j)
 #
@@ -53,8 +53,8 @@
 # arguments:
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
-#              covariates); data frame; user covariates, if any, must
-#              precede item covariates, if any
+#              covariates); data frame; user covariates, if any, 
+#              must precede item covariates, if any
 #   userCovsStartCol: start column of user covariates, if any
 #   itemCovsStartCol: start column of user covariates, if any
 
@@ -93,8 +93,8 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
   ydots$trainingUsers <- unique(users)
   ydots$trainingItems <- unique(items)
   covCols <- getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
-  usrCovCols <- covCols[1]
-  itmCovCols <- covCols[2]
+  usrCovCols <- covCols[[1]]
+  itmCovCols <- covCols[[2]]
   ydots$usrCovCols <- usrCovCols  # vector of column numbers
   ydots$itmCovCols <- itmCovCols  # vector of column numbers
   haveCovs <- ncol(ratingsIn) > 3
@@ -109,14 +109,19 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
      # NOTE:  could do a weighted least squares, using the Ni, 
      # but treating the latter is random too, not needed;
      # user covs first, if any
-     if (!is.na(usrCovCols)) {
-        frml <- as.formula(paste(nms[3],'~ .-1'))
+     if (!is.null(usrCovCols)) {
+        nms3 <- nms[3]
+        cmd <- paste(nms3, ' - mean(',nms3,') ~ .-1',sep='')
+        frml <- as.formula(cmd)
+        frml <- as.formula(paste(nms3,'-~ .-1'))
         lmout <- lm(frml,data=ratingsIn[,c(3,usrCovCols)])
         ydots$lmoutUsr <- lmout
      }
      # now item covs, if any
-     if (!is.na(itmCovCols)) {
-        frml <- as.formula(paste(nms[3],'~ .-1'))
+     if (!is.null(itmCovCols)) {
+        nms3 <- nms[3]
+        cmd <- paste(nms3, ' - mean(',nms3,') ~ .-1',sep='')
+        frml <- as.formula(cmd)
         lmout <- lm(frml,data=ratingsIn[,c(3,itmCovCols)])
         ydots$lmoutItm <- lmout
      }
@@ -133,11 +138,6 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 
 # predict() method for the 'ydotsMM' class
 
-# in predicting for user i, the code looks at Ni., the number of ratings
-# by user i; if that number is below minN, the prediction comes from
-# user i's covariate information (if available) instead of from the
-# Y.j values; similarly for N.j
-
 # arguments
 
 #    ydotsObj: the output of trainMM()
@@ -145,11 +145,9 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
 #             is no ratings column; thus covariates, if any, are shifted
 #             leftward one slot, i.e. userID, itemID, cov1, cov2...;
 #             note that the names must be the same as in the training set
-#    minN:  if Ni < minN and have covariates, use the latter instead of
-#           Yi., etc.; see above
 
 # returns vector of predicted values for testSet
-predict.ydotsMM = function(ydotsObj,testSet,minN=0) 
+predict.ydotsMM = function(ydotsObj,testSet) 
 {
    # see comment on as.character() above; this gets tricky; we will move
    # back and forth between referring to elements by name and by ordinal
@@ -162,56 +160,51 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
    # essentially, we are naming the elements of both usrMeans and
    # itmMeans after the elements of testSet[,1]
    names(itmMeans) <- ts1
+   # now start building the prediction
    nTest <- nrow(testSet)
    haveCovs <- ncol(testSet) > 2
    if (!haveCovs) {
       pred <- usrMeans + itmMeans - ydotsObj$grandMean
    }
    else {
+      # where are the covariates?
       usrCovCols <- ydotsObj$usrCovCols 
       itmCovCols <- ydotsObj$itmCovCols
       # shift left due to no Ratings column
-      if (!is.na(usrCovCols)) usrCovCols <- usrCovCols - 1 
-      if (!is.na(itmCovCols)) itmCovCols <- itmCovCols - 1 
-      if (minN == 0) stop('with covariates, need minN > 0')
+      if (!is.null(usrCovCols)) usrCovCols <- usrCovCols - 1 
+      if (!is.null(itmCovCols)) itmCovCols <- itmCovCols - 1 
       # must center the covariates, using the same centering information
       # used in ydotsObj
       colmeans <- ydotsObj$covMeans
-      colmeans <- matrix(rep(colmeans,nTest),nrow=nTest,byrow=T)
+      colmeans <- matrix(rep(colmeans,nTest),nrow=nTest,byrow=TRUE)
       testSet[,-(1:2)] <- testSet[,-(1:2)] - colmeans
-      # if have user covs: 
-      
-      
-      #### which ones have counts below minN?
 
-
-      # which cases to use covariates on, i.e. which users or cases have
-      # only a small number of data points?
-      smallNiUsersWhich <- which(ydotsObj$Ni.[ts1] < minN)
-      smallNiUsers <- ts1[smallNiUsersWhich]
-      bigNiUsersWhich <- which(ydotsObj$Ni[ts1] >= minN)
-      bigNiUsers <- ts1[bigNiUsersWhich]
-      smallNiItems <- ts2[ydotsObj$Ni[ts1] < minN]
-      bigNiItems <- ts2[ydotsObj$Ni[ts1] >= minN]
-      # they all start with the mu term
+      # start with the mu term
       Y.. <- ydotsObj$grandMean
       pred <- rep(Y..,nTest) 
-      # now the alpha and beta terms; first find the regression-based
-      # predictions of all alpha, beta, even though only use some
-      if(!is.na(usrCovCols)) predalpha <- 
-            predict(ydotsObj$lmoutUsr,testSet[,usrCovCols,drop=F])
-      if(!is.na(itmCovCols)) predbeta <- 
-            predict(ydotsObj$lmoutItm,testSet[,itmCovCols,drop=F])
-      # now add those to the cases of small numbers of users or items
-      pred[smallNiUsers] <- pred[smallNiUsers] + predalpha[smallNiUsers]
-      pred[smallNiItems] <- pred[smallNiItems] + predalpha[smallNiItems]
-      # now add the non-regression predictions to the cases of big numbers 
-      # of users or items
-      pred[bigNiUsers] <- pred[bigNiUsers] + usrMeans[bigNiUsers] - Y.. 
-      pred[bigNiItems] <- pred[bigNiItems] + itmMeans[bigNiItems] - Y..
-      # pred[bigNiUsersWhich] <- 
-      #    ydotsObj$usrMeans[bigNiUsers] + ydotsObj$itmMeans[bigNiItems] -
-      #       ydotsObj$grandMean
+      
+      # now the alpha term:
+      if(!is.null(usrCovCols)) {
+         predalpha <- 
+            predict(ydotsObj$lmoutUsr,testSet[,usrCovCols,drop=FALSE])
+      } else {
+         Yi. <- ydotsObj$usrMeans
+         testUsrNames <- as.character(testSet[,1])
+         predalpha <- Yi.[testUsrNames] - Y..
+      }
+      
+      # and beta:
+      if(!is.null(itmCovCols)) {
+         predbeta <- 
+            predict(ydotsObj$lmoutItm,testSet[,itmCovCols,drop=FALSE])
+      } else {
+         Y.j <- ydotsObj$itmMeans
+         testItmNames <- as.character(testSet[,2])
+         predbeta <- Y.j[testItmNames] - Y..
+      }
+
+      # and finally
+      pred <- pred + predalpha + predbeta
    }
    names(pred) <- NULL  # use ordinal indexing
    pred
