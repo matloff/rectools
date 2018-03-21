@@ -2,59 +2,70 @@
 
 ## Advanced Package for Recommender Systems
 
-## FEATURES:
+A featured-filled package of tools from the recommender systems
+("recsys") world, plus some new methods.
+
+## Recommender Systems
+
+In recsys, we have data in which some "users" rate some "items,"
+and we wish to predict how users would rate other items.  Example
+applications are:
+
+* Moviegoers rate films (rhe "Hello World" of recsys).
+
+* Link prediction in graphs (where will the next new edge be created?).
+
+* Will a certain user have a bad reaction to a certain prescription
+  drug?
+
+* How well will sports team A do against team B?
+
+## Package Features
 
 * Incorporate user and item covariate information, including item
   category preferences.
 
-* Parallel computation.
-
 * New methods, and novel variations on common models. 
+
+* Parallel computation.
 
 * Plotting.
 
 * Focus group finder.
 
-## Overview and Examples
+## Example: InstEval data
 
 Let's start with a concrete example, the **InstEval** data that is
-bundled with the ##lmer4## package, which is included by ##rectools##.
+bundled with the **lmer4** package, which is included by **rectools**.
 The data consist of student valuations of instructors at the famous
-Swiss university ZTH.
+Swiss university ZTH.  There are 73421 ratings submitted by 2972
+students of 1128 instructors.  Ratings are on a scale of 1 to 5.
 
-For convenience, ##rectools## includes a function that loads this data,
+Not surprisingly, the ratings matrix is sparse; most students did not
+rate most instructors.  The goal is to "complete" the matrix, i.e.
+predict how well all the students would like all the instructors.
+
+For convenience, **rectools** includes a function that loads this data,
 processes it (e.g. creating dummy variables for the school's
 departments), and assigning the result to **ivl**:
 
 ``` R
 > getInstEval()
-> head(ivl)
-  s    d y studage lectage service dpt15 dpt5 dpt10 dpt12 dpt6 dpt7 dpt4
-dpt8
-1 1 1002 5       1       2       0     0    0     0     0    0    0    0
-0
-2 1 1050 2       1       1       1     0    0     0     0    1    0    0
-0
-3 1 1582 5       1       2       0     0    0     0     0    0    0    0
-0
-4 1 2050 3       1       2       1     0    0     0     0    0    0    0
-0
-5 2  115 2       1       1       0     0    1     0     0    0    0    0
-0
-6 2  756 4       1       1       0     0    1     0     0    0    0    0
-0
-  dpt9 dpt14 dpt1 dpt3 dpt11
-1    0     0    0    0     0
-2    0     0    0    0     0
-3    0     0    0    0     0
-4    0     0    0    1     0
-5    0     0    0    0     0
-6    0     0    0    0     0
+> ivl[28888,]
+         s   d y studage lectage service dpt15 dpt5 dpt10
+28888 1178 220 5       3       5       0     0    0     0
+      dpt12 dpt6 dpt7 dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
+28888     1    0    0    0    0    0     0    0    0     0
 ```
 
-In that second record, for instance, Student 1 gave a rating of 2 to
-Instructor 1050.  The class was a service class (i.e. for nonmajors) by
-Department 6.
+The data frame **ivl** follows the standard input format in the recsys
+world: user ID, item ID, rating, covariates.
+
+In that record 28888, for instance, Student 1178 gave a rating of 5 to
+Instructor 220.  The class was not a service class (i.e. not for
+nonmajors) in Department 12.  The student was in his/her third year
+(**studage** = 3), and had taken the course 5 semesters earlier.
+
 ### Random effects ANOVA model:
 
 A simple statistical random effects latent factor model, often called a
@@ -64,21 +75,27 @@ E(Y) =  &mu; + &alpha;<sub>i</sub> + &beta;<sub>j</sub>
 
 where Y<sub>ij</sub> is the rating, with &alpha;<sub>i</sub> and
 &beta;<sub>j</sub> being specific latent effects for user i and item j,
-e.g. movie reviewer i and movie j.
+e.g. moviegoer i and movie j.
 
-Though typically Maximum Likelihood Estimation is used for latent factor
-models, this is computationally infeasible on large data sets.  Instead,
-we use the Method of Moments, estimating &alpha;<sub>i</sub> by Yi. -
-Y.., where the first term is the mean of all observed ratings by user i
-and the second is the overall mean of all ratings.  We estimate
-&beta;<sub>j</sub> similarly, and estimate &mu; by the
-overall mean Y..  The predicted value of Y<sub>ij</sub> is then
+Though typically Maximum Likelihood Estimation is used for random
+effects models in statistics, this is computationally infeasible on
+large data sets.  Instead, we use the Method of Moments, which provides
+a closed-form solution, estimating &alpha;<sub>i</sub> by Yi. - Y..,
+where the first term is the mean of all observed ratings by user i and
+the second is the overall mean of all ratings.  We estimate
+&beta;<sub>j</sub> similarly, and estimate &mu; by the overall mean Y..
+The predicted value of Y<sub>ij</sub> is then
 
-Yi. + Y.j - Y..
+Y.. + (Yi. - Y..) + (Y.j - Y..) = Yi. Y.j - Y.. 
 
-Computation is simple, with estimation conducted by our function
-**trainMM()**; prediction is done on the output by our function
-**predict.ydotsMM()**.
+Let's see how student 1128 would like instructor 99.  For now, let's not
+include the covariates.
+
+``` R
+> mmout <- trainMM(ivl[,1:3])  # exclude covariates
+> predict(mmout,data.frame(s=1128,d=99))
+[1] 3.119652
+```
 
 We do make MLE available.  Here &alpha;<sub>i</sub> and
 &beta;<sub>j</sub> are assumed to have independent normal distributions
@@ -90,7 +107,51 @@ for our application, and adding our function **predict.ydotsMLE()** for
 prediction, also an **lme4** wrapper suited for our context.  Since MLE
 computation can be voluminous, our package offers a parallel version.
 
-Covariates are allowed for both the MM and MLE versions.
+One important advantage of the MLE version is that it lends itself to
+the case of binary Y, with the logistic model.
+
+Covariates are allowed for both the MM and MLE versions, as well as for
+other methods in **rectools**.  Let's try predicting student 1128 and
+instructor 99 again, this time using the service and department
+information.  
+
+``` R
+> mmout1 <- trainMM(ivl[,-(4:5)],userCovsStartCol=NULL,itemCovsStartCol=4)
+```
+
+Start building the test set for the prediction:
+
+``` R
+> testset <- ivl[28888,-(3:5)]
+> testset
+         s   d service dpt15 dpt5 dpt10 dpt12 dpt6 dpt7
+28888 1178 220       0     0    0     0     1    0    0
+      dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
+28888    0    0    0     0    0    0     0
+```
+
+Now, which department does this instructor teach in?
+
+``` R
+> which(ivl$d == 99)
+ [1]  3015  3604  6214  9347 13507 18235 22131 23514 25397
+[10] 31402 46502 55132 57645 59201 66132 68640 69885 73205
+> ivl[3015,]
+       s  d y studage lectage service dpt15 dpt5 dpt10
+3015 124 99 4       3       4       0     0    0     0
+     dpt12 dpt6 dpt7 dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
+3015     0    0    0    0    0    0     0    1    0     0
+```
+
+Ah, department 1.  Now go ahead with the prediction:
+
+``` R
+
+
+
+```
+
+
 
 ### Let's try it:
 
