@@ -198,7 +198,6 @@ predict.ydotsMM = function(ydotsObj,testSet,minN=0)
       pred <- rep(Y..,nTest) 
       # now the alpha and beta terms; first find the regression-based
       # predictions of all alpha, beta, even though only use some
-      browser()
       if(!is.na(usrCovCols)) predalpha <- 
             predict(ydotsObj$lmoutUsr,testSet[,usrCovCols,drop=F])
       if(!is.na(itmCovCols)) predbeta <- 
