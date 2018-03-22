@@ -108,6 +108,31 @@ The notation here extends that, saying that there is a different
 intercept for each value of u.  That gives us our &alpha;<sub>i</sub>.
 The (1|v) term similarly gives us &beta;<sub>j</sub>.
 
+Since we have controlled simulation data here, we know what to expect,
+and can thus check the 'lme4' output:
+
+``` R
+> lmout
+Linear mixed model fit by REML ['lmerMod']
+Formula: y ~ x + (1 | u) + (1 | v)
+   Data: md
+REML criterion at convergence: 3157.941
+Random effects:
+ Groups   Name        Std.Dev.
+ u        (Intercept) 0.9475  
+ v        (Intercept) 2.0495  
+ Residual             0.9755  
+Number of obs: 1000, groups:  u, 50; v, 50
+Fixed Effects:
+(Intercept)            x  
+      1.467        1.494  
+```
+
+Since we generated the data so that &alpha; and &beta; have standard
+deviations 1 and 2, the above checks out.  So do the intercept and slope
+for the X component. 
+```
+
 The class of the output above, lmout, is of course 'lme4'.  There is a
 corresponding method, predict.lme4(), with which we can now do
 prediction.  Let's make a little test case.  We will take one of the
