@@ -76,14 +76,12 @@ This code will generate the data, using the second model above:
 set.seed(99999)
 m <- matrix(nrow=1000,ncol=4)
 md <- as.data.frame(m)
-colnames(md) <- c('x','u','v','y')
+colnames(md) <- c('x','y')
 md$x <- rnorm(1000,1,1)
-u <- 1:50
-v <- 1:50
-md$u <- sample(u,1000,replace=TRUE)
-md$v <- sample(v,1000,replace=TRUE)
-alpha <- rnorm(1000)[md$u]
-beta <- 2*rnorm(1000)[md$v]
+u <- sample(1:50,1000,replace=TRUE)
+v <- sample(1:50,1000,replace=TRUE)
+alpha <- rnorm(1000)[u]
+beta <- rnorm(1000,0,2)[v]
 md$y <- 1 + 1.5*md$x + alpha + beta + rnorm(1000)
 ```
 
@@ -100,11 +98,13 @@ lmout <- lmer(y ~ x + (1|u) + (1|v),data=md)
 At first this looks like an ordinary **lm()** call, predicting y from x,
 u and v.  However, the notation is different, in the '(1|' expressions.
 
-In R regression formulas, '1' means an intercept term, b in the equation
+In R regression formulas, '1' means an intercept term, e.g.
+&delta;<sub>0</sub> in the usual linear regression model
 
-w = a q + b  
+mean S = &delta;<sub>0</sub> + &delta;<sub>1</sub> T
 
-The notation here extends that, saying that there is a different
+Now, what if &delta;<sub>0</sub> were random?  The notation in the above
+**lmer** call  implements that idea, saying that there is a different
 intercept for each value of u.  That gives us our &alpha;<sub>i</sub>.
 The (1|v) term similarly gives us &beta;<sub>j</sub>.
 
@@ -131,7 +131,7 @@ Fixed Effects:
 Since we generated the data so that &alpha; and &beta; have standard
 deviations 1 and 2, the above checks out.  So do the intercept and slope
 for the X component. 
-```
+
 
 The class of the output above, lmout, is of course 'lme4'.  There is a
 corresponding method, predict.lme4(), with which we can now do
