@@ -70,24 +70,28 @@ The **lmer4** package is extremely versatile, though extremely complex.
 Fortunately, **rectools** uses only a small fraction of **lmer4**'s
 capabilities.  Let's try it on a small artificial example.
 
-This code will generate the data, using the second model above:
+This code will generate the data, using the second model above.  We will
+simulate 50 moviegoers, choosing among 50 movies, with 1000 user-item
+pairings, thus 1000 ratings.  The A matrix, 50x50, is then 40% full.  
+Our ratings will be continuous variables.
 
 ``` R
-set.seed(99999)
+set.seed(9999)
 m <- matrix(nrow=1000,ncol=4)
 md <- as.data.frame(m)
-colnames(md) <- c('x','y')
+colnames(md) <- c('x','u','v','y')
 md$x <- rnorm(1000,1,1)
 u <- sample(1:50,1000,replace=TRUE)
 v <- sample(1:50,1000,replace=TRUE)
+md$u <- u
+md$v <- v
 alpha <- rnorm(1000)[u]
 beta <- rnorm(1000,0,2)[v]
 md$y <- 1 + 1.5*md$x + alpha + beta + rnorm(1000)
+mean(md$y)
 ```
 
-We are simulating 50 users rating 50 items, with 1000 user-item
-pairings, thus 1000 ratings.  The A matrix is then 40% full.  Here &mu;
-is 1 and &gamma; is 1.5; p = 1.
+Here &mu; is 1 and &gamma; is 1.5; p = 1.
 
 So, let's fit the model:
 
@@ -109,45 +113,56 @@ intercept for each value of u.  That gives us our &alpha;<sub>i</sub>.
 The (1|v) term similarly gives us &beta;<sub>j</sub>.
 
 Since we have controlled simulation data here, we know what to expect,
-and can thus check the 'lme4' output:
+and can thus check the **'lme4'** output:
 
 ``` R
 > lmout
 Linear mixed model fit by REML ['lmerMod']
 Formula: y ~ x + (1 | u) + (1 | v)
    Data: md
-REML criterion at convergence: 3157.941
+REML criterion at convergence: 3210.546
 Random effects:
  Groups   Name        Std.Dev.
- u        (Intercept) 0.9475  
- v        (Intercept) 2.0495  
- Residual             0.9755  
+ u        (Intercept) 1.098   
+ v        (Intercept) 1.859   
+ Residual             1.002   
 Number of obs: 1000, groups:  u, 50; v, 50
 Fixed Effects:
 (Intercept)            x  
-      1.467        1.494  
+      1.129        1.532  
 ```
 
 Since we generated the data so that &alpha; and &beta; have standard
 deviations 1 and 2, the above checks out.  So do the intercept and slope
 for the X component. 
 
-
-The class of the output above, lmout, is of course 'lme4'.  There is a
-corresponding method, predict.lme4(), with which we can now do
+The class of the output above, lmout, is of course **'lme4'**.  There is
+a corresponding method, **predict.lme4()**, with which we can now do
 prediction.  Let's make a little test case.  We will take one of the
-existing data points, and predict how this user would rate another item.
+existing data points, and predict how this user would rate a different
+item.
 
 ``` R
-> testset <- z$md[976,]
-> > testset$v <- 20
-            x  u v        y
-976 0.6757279 17 4 5.733739
+> testset <- md[976,]
+> testset
+           x u  v        y
+976 1.546084 7 32 4.573616
 > testset$v <- 20
 > testset
-            x  u  v        y
-976 0.6757279 17 20 5.733739
+           x u  v        y
+976 1.546084 7 20 4.573616
 > predict(lmout,testset)
      976 
-4.783199 
+5.710952
+```
+
+This makes sense, as movie 20 turns out to be more popular in general
+than movie 32:
+
+``` R
+> mean(md$y[md$v == 32])
+[1] 2.826098
+> mean(md$y[md$v == 20])
+[1] 4.262068
+```
 
