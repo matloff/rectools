@@ -5,6 +5,11 @@
 #              covariates); data frame
 #   cls: an R 'parallel' cluster
 
+# in the parallel case, use 'partools' philosophy of Leave It There;
+# run lmer() on each chunk, leaving the output lmerout there; then when
+# predicting, we call predict(lmerout,testset) at each node, then
+# average the results (with na.rm = TRUE)
+
 # value:
 
 #   ydotsMLE (if NULL cls): S3 class with components:

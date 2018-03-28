@@ -9,6 +9,9 @@
 #   trainprop: proportion of data for the training set
 #   cls: if non-null, do this in parallel
 
+# in the parallel case, use 'partools' philosophy of Leave It There;
+# see comments in trainMLE.R
+
 # value:
 
 #    accuracy value
@@ -24,6 +27,8 @@ xvalMLE <- function(ratingsIn, trainprop=0.8,cls=NULL){
   means = trainMLE(trainingSet,cls)
   testIdxs = setdiff(1:nrowRatIn,trainIdxs)
   testSet = ratIn[testIdxs,]
+  # allow.new.levels = TRUE means predict() won't bomb if new u_i or i_j
+  # are encountered in test set not in the training set, as is likely
   testSet$pred = predict(means,testSet[,-3],allow.new.levels=TRUE)
   numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
