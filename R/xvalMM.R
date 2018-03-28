@@ -12,13 +12,12 @@
 #   accmeasure: accuracy measure; 'exact', 'mad', 'rms' for
 #               prop of exact matches, mean absolute error, and
 #               root-mean square error
-#   minN: see trainMM.R
 
 # value:
 
 #    accuracy value
 
-xvalMM <- function(ratingsIn, trainprop=0.5, minN=0,
+xvalMM <- function(ratingsIn, trainprop=0.5, 
     haveUserCovs=FALSE, haveItemCovs=FALSE, haveBoth=FALSE) 
 {
   ratIn = ratingsIn 
@@ -40,7 +39,7 @@ xvalMM <- function(ratingsIn, trainprop=0.5, minN=0,
   tmp <- deleteNewIDs(testA,trainUsers,trainItems)
   testA <- tmp$testSet
   deleted <- tmp$deleted
-  pred = predict(means,testA[,-3], minN=minN, haveUserCovs=haveUserCovs, 
+  pred = predict(means,testA[,-3], haveUserCovs=haveUserCovs, 
      haveItemCovs=haveItemCovs, haveBoth=haveBoth)
   # calculate accuracy 
   result = list(nFullData=nrowRatIn,trainprop=trainprop,preds=pred,

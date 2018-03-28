@@ -92,13 +92,13 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
   ydots <- list(grandMean=Y..,usrMeans=Yi.,itmMeans=Y.j)
   ydots$trainingUsers <- unique(users)
   ydots$trainingItems <- unique(items)
-  covCols <- getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
-  usrCovCols <- covCols[[1]]
-  itmCovCols <- covCols[[2]]
-  ydots$usrCovCols <- usrCovCols  # vector of column numbers
-  ydots$itmCovCols <- itmCovCols  # vector of column numbers
   haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
+     covCols <- getCovCols(userCovsStartCol,itemCovsStartCol,ncol(ratingsIn))
+     usrCovCols <- covCols[[1]]
+     itmCovCols <- covCols[[2]]
+     ydots$usrCovCols <- usrCovCols  # vector of column numbers
+     ydots$itmCovCols <- itmCovCols  # vector of column numbers
      # as noted above, center the covs
      tmp <- scale(ratingsIn[,-(1:3)],scale=FALSE)
      ratingsIn[,-(1:3)] <- tmp
