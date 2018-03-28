@@ -13,7 +13,7 @@
 
 #    accuracy value
 
-xvalMLE <- function(ratingsIn, trainprop=0.5,cls=NULL){
+xvalMLE <- function(ratingsIn, trainprop=0.8,cls=NULL){
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
@@ -24,7 +24,7 @@ xvalMLE <- function(ratingsIn, trainprop=0.5,cls=NULL){
   means = trainMLE(trainingSet,cls)
   testIdxs = setdiff(1:nrowRatIn,trainIdxs)
   testSet = ratIn[testIdxs,]
-  testSet$pred = predict(means,testSet[,-3])
+  testSet$pred = predict(means,testSet[,-3],allow.new.levels=TRUE)
   numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
   result = list(ndata=nrowRatIn,trainprop=trainprop,numpredna=numpredna)

@@ -37,20 +37,21 @@ trainMLE <- function(ratingsIn,cls=NULL) {
   }
   if (is.null(cls)) {
      lmerout = lmer(frml,data=ratingsIn)
-     ydots = formYdots(ratingsIn,nms,haveCovs,lmerout)
   } else {
      require(partools)
      clusterEvalQ(cls,require(lme4))
      distribsplit(cls,'ratingsIn')
      clusterExport(cls,c('frml','formYdots'),envir=environment())
      clusterExport(cls,c('nms','haveCovs'),envir=environment())
-     clusterEvalQ(cls,lmerout <- lmer(frml,data=ratingsIn))
+     lmerout <- clusterEvalQ(cls,lmerout <- lmer(frml,data=ratingsIn))
      ydots = clusterEvalQ(cls,formYdots(ratingsIn,nms,haveCovs,lmerout))
-     class(ydots) = 'ydotsMLEpar'
+     retval <- list(lmerout=lmerout,ydots=ydots)
+     class(retval) = 'ydotsMLEpar'
   }
-  invisible(ydots)
+  invisible(lmerout)
 }
 
+# no longer used
 formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
   ydots = list()
   if (!haveCovs) {
@@ -80,12 +81,13 @@ formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
 #
 # returns vector of predicted values for testSet
 predict.ydotsMLE <- function(ydotsObj,testSet) {
-   if (ncol(testSet) == 2) Y.. = ydotsObj$Y.. else {
-      Y.. = - as.matrix(cbind(1,testSet[,-(1:2)])) %*% ydotsObj$Y..
-   }
-   testSet$pred = ydotsObj$Yi.[testSet[,1]] +
-                  ydotsObj$Y.j[testSet[,2]] - Y..
-   testSet$pred
+   ###    if (ncol(testSet) == 2) Y.. = ydotsObj$Y.. else {
+   ###       Y.. = - as.matrix(cbind(1,testSet[,-(1:2)])) %*% ydotsObj$Y..
+   ###    }
+   ###    testSet$pred = ydotsObj$Yi.[testSet[,1]] +
+   ###                   ydotsObj$Y.j[testSet[,2]] - Y..
+   ###    testSet$pred
+   predict(ydotsObj,testSet)
 }
 
 # predict() method for the 'ydotsMLE' class
