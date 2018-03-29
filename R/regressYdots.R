@@ -46,34 +46,16 @@
 # consecutive in the original, if we do cross-validation, this 
 # may not be the case; so we switch to character IDs
 
+# when predicting new observations, don't forget to call IDstoMeans() on
+# the new data
+
 regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL) 
 {
-   covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
-   if (!is.null(covs)) {
-      covs <- as.data.frame(covs)
-      colnames(covs) <- names(ratingsIn[,-(1:3)]) 
-   }
 
-   if (is.null(ydotsObj)) ydotsObj <- trainMM(ratingsIn[,1:3])
-
-   # convert user, item IDs to means
-   usrMeans <- ydotsObj$usrMeans
-   itmMeans <- ydotsObj$itmMeans
-   # as explained above, usrMeans and itmMeans are indexed by character
-   # versions of user/item IDs; thus again, the next 2 lines are needed 
-   # due to character indexing of usrMeans and itmMeans
-   usrsInput <- as.character(ratingsIn[,1])
-   itmsInput <- as.character(ratingsIn[,2])
-   uMeans <- usrMeans[usrsInput]
-   iMeans <- itmMeans[itmsInput]
-   # uMeans, iMeans have length = nrow(ratingsIn); e.g. i-th element of
-   # uMeans is Yi.
-
-   # set up the data for the regression analysis
-   xy <- data.frame(uMeans,iMeans,covs,ratingsIn[,3])
-   x <- data.frame(uMeans,iMeans,covs)
+   x <- IDstoMeans(ratingsIn,ydotsObj=ydotsObj)
    y <- ratingsIn[,3]
-   names(xy) <- c('uMeans','iMeans',names(covs),'rats')
+   xy <- cbind(x,y)
+   names(xy) <- c(names(x),'rats')
 
    # perform the regression analysis
    if (regModel %in% c('lm','glm')) {
@@ -96,3 +78,34 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
    } 
 }
 
+# converts the first two columns of ratingsIn from user/item IDs to
+# user/item ratings means; copies the covs (columns 4+, if any); adjusts
+# column names accordingly
+IDsToMeans <- function(ratingsIn,ydotsObj=NULL) 
+{
+   # handle covariates first
+   covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
+   if (!is.null(covs)) {
+      covs <- as.data.frame(covs)
+      colnames(covs) <- names(ratingsIn[,-(1:3)]) 
+   }
+
+   if (is.null(ydotsObj)) ydotsObj <- trainMM(ratingsIn[,1:3])
+
+   # convert user, item IDs to means
+   usrMeans <- ydotsObj$usrMeans
+   itmMeans <- ydotsObj$itmMeans
+   # as explained above, usrMeans and itmMeans are indexed by character
+   # versions of user/item IDs; thus again, the next 2 lines are needed 
+   # due to character indexing of usrMeans and itmMeans
+   usrsInput <- as.character(ratingsIn[,1])
+   itmsInput <- as.character(ratingsIn[,2])
+   uMeans <- usrMeans[usrsInput]
+   iMeans <- itmMeans[itmsInput]
+   # uMeans, iMeans have length = nrow(ratingsIn); e.g. i-th element of
+   # uMeans is Yi.
+   means <- data.frame(uMeans=uMeans,iMeans=iMeans)
+   names(means) <- c('uMeans','iMeans')
+   x <- cbind(means,covs)
+   x
+}
