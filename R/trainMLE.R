@@ -12,13 +12,7 @@
 
 # value:
 
-#   ydotsMLE (if NULL cls): S3 class with components:
-
-#      Y..: grand mean (fixef() if have covariates)
-#      Yi.: vector of mean ratings for each user
-#           (part of ranef() if have covariates)
-#      Y.j: vector of mean ratings for each item
-#           (part of ranef() if have covariates)
+#   ydotsMLE (if NULL cls): object of class 'lmer' (lmer4 pkg)
 
 #   ydotsMLEpar (if non-NULL cls): S3 class with components of class ydotsMLE
 
@@ -46,12 +40,12 @@ trainMLE <- function(ratingsIn,cls=NULL) {
      require(partools)
      clusterEvalQ(cls,require(lme4))
      distribsplit(cls,'ratingsIn')
-     clusterExport(cls,c('frml','formYdots'),envir=environment())
+     clusterExport(cls,'frml',envir=environment())
      clusterExport(cls,c('nms','haveCovs'),envir=environment())
      lmerout <- clusterEvalQ(cls,lmerout <- lmer(frml,data=ratingsIn))
-     ydots = clusterEvalQ(cls,formYdots(ratingsIn,nms,haveCovs,lmerout))
-     retval <- list(lmerout=lmerout,ydots=ydots)
-     class(retval) = 'ydotsMLEpar'
+     ### ydots = clusterEvalQ(cls,formYdots(ratingsIn,nms,haveCovs,lmerout))
+     lmerout <- list()  # nothing to return
+     class(lmerout) = 'ydotsMLEpar'
   }
   invisible(lmerout)
 }
@@ -85,23 +79,19 @@ formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
 # is no ratings column
 #
 # returns vector of predicted values for testSet
+
 predict.ydotsMLE <- function(ydotsObj,testSet) {
-   ###    if (ncol(testSet) == 2) Y.. = ydotsObj$Y.. else {
-   ###       Y.. = - as.matrix(cbind(1,testSet[,-(1:2)])) %*% ydotsObj$Y..
-   ###    }
-   ###    testSet$pred = ydotsObj$Yi.[testSet[,1]] +
-   ###                   ydotsObj$Y.j[testSet[,2]] - Y..
-   ###    testSet$pred
    predict(ydotsObj,testSet)
 }
 
 # predict() method for the 'ydotsMLE' class
-predict.ydotsMLEpar <- function(ydotsMLEparObj,testSet) {
-   predict.testSet <- 
-      function(ydotsMLEObj) predict(ydotsMLEObj,testSet)
-   tmp = lapply(ydotsMLEparObj,predict.testSet)
-   tmp = Reduce(cbind,tmp)
-   rowMeans(tmp,na.rm=TRUE)
+predict.ydotsMLEpar <- 
+      function(ydotsMLEparObj,testSet,allowNewLvls=FALSE,cls) 
+{
+   clusterExport(cls,c('testSet','allowNewLvls'),envir=environment())
+   preds <- clusterEvalQ(cls,predict(lmerout,testSet,
+      allow.new.levels=allowNewLvls))
+   Reduce('+',preds)/length(cls)
 }
 
 # check

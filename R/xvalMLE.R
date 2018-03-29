@@ -23,13 +23,12 @@ xvalMLE <- function(ratingsIn, trainprop=0.8,cls=NULL){
   rowNum = floor(trainprop * nrowRatIn)
   trainIdxs = sample(1:nrowRatIn,rowNum)
   trainingSet = ratIn[trainIdxs, ]
-  # get means
-  means = trainMLE(trainingSet,cls)
+  MLEobj = trainMLE(trainingSet,cls)
   testIdxs = setdiff(1:nrowRatIn,trainIdxs)
   testSet = ratIn[testIdxs,]
   # allow.new.levels = TRUE means predict() won't bomb if new u_i or i_j
   # are encountered in test set not in the training set, as is likely
-  testSet$pred = predict(means,testSet[,-3],allow.new.levels=TRUE)
+  testSet$pred = predict(MLEobj,testSet[,-3],allowNewLvls=TRUE,cls=cls)
   numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
   result = list(ndata=nrowRatIn,trainprop=trainprop,numpredna=numpredna)
