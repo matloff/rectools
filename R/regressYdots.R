@@ -6,7 +6,7 @@
 #    Y_ij = mu + alpha_i + beta_j + eps
  
 # But the above equation looks like a regression equation, so we might
-# treat the estimates of alpha_i and beta_j, which are the per-user and
+# treat estimates of alpha_i and beta_j in the form of per-user and
 # per-item sample means Yi. and Y.j, as predictor variables in a
 # regression context, i.e. we predict Y_ij from:
 
@@ -18,8 +18,8 @@
 # age and gender, those for item j might be genre, and a joint
 # covariate might be user i's general liking for the genre of item j.
 
-# It seems intuitive that Yi. and Y.j would be
-# reasonable candidates for predictors. 
+# It seems intuitive that Yi. and Y.j would be reasonable candidates 
+# for predictors. 
 
 # Any regression model can be used, e.g. linear, logistic, random
 # forests, neural networks, etc.
@@ -28,12 +28,18 @@
 
 #    ratingsIn: the raw input data, each having the form 
 #               (userID, itemID, rating, covariates)
-#    regModel: the function to use for regression, such as lm() or
-#              randomForest()
+#    regModel: the function to use for regression; current choices are
+#              'lm'; 'glm' with family = binomial; 'rf' (random forest);
+#              'poly' (polyreg package)
+#              
 #    ydotsObj: output from trainMM(), to get the user and item means; if
 #              NULL, will be generated here
 #    rmArgs: regression model arguments, e.g. number of nearest
 #            neighbors; expressed as a quoted string; not implemented yet
+
+# value:
+
+#    whatever the regression function returns
 
 # IMPORTANT NOTE (repeated here from trainMM.R):
 # user and item IDs may not be consecutive; even if they are
@@ -47,7 +53,10 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
       covs <- as.data.frame(covs)
       colnames(covs) <- names(ratingsIn[,-(1:3)]) 
    }
+
    if (is.null(ydotsObj)) ydotsObj <- trainMM(ratingsIn[,1:3])
+
+   # convert user, item IDs to means
    usrMeans <- ydotsObj$usrMeans
    itmMeans <- ydotsObj$itmMeans
    # as explained above, usrMeans and itmMeans are indexed by character
@@ -59,21 +68,31 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
    iMeans <- itmMeans[itmsInput]
    # uMeans, iMeans have length = nrow(ratingsIn); e.g. i-th element of
    # uMeans is Yi.
+
+   # set up the data for the regression analysis
    xy <- data.frame(uMeans,iMeans,covs,ratingsIn[,3])
    x <- data.frame(uMeans,iMeans,covs)
    y <- ratingsIn[,3]
    names(xy) <- c('uMeans','iMeans',names(covs),'rats')
-   if (regModel %in% c('lm','rf','ctree')) {
+
+   # perform the regression analysis
+   if (regModel %in% c('lm','glm')) {
       cmd <- paste0(regModel,'(')
       cmd <- paste0(cmd,'rats ~ .,data=xy')
       if (!is.null(rmArgs)) {
-         cmd <- paste0(cmd,'.',rmArgs,')')
+         cmd <- paste0(cmd,',',rmArgs,')')
       } else cmd <- paste0(cmd,')')
       return(eval(parse(text=cmd)))
    }
    if (regModel == 'rf') {
       require(randomForest)
       return(randomForest(x,y))
+   } 
+   if (regModel == 'poly') {
+      require(polyreg)
+      cmd <- 'polyFit(xy,'
+      cmd <- paste0(cmd,rmArgs,')')
+      return(eval(parse(text=cmd)))
    } 
 }
 
