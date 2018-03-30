@@ -52,7 +52,7 @@
 regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL) 
 {
 
-   x <- IDstoMeans(ratingsIn,ydotsObj=ydotsObj)
+   x <- IDsToMeans(ratingsIn,ydotsObj=ydotsObj)
    y <- ratingsIn[,3]
    xy <- cbind(x,y)
    names(xy) <- c(names(x),'rats')
