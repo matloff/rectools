@@ -28,7 +28,11 @@ xvalMLE <- function(ratingsIn, trainprop=0.8,cls=NULL){
   testSet = ratIn[testIdxs,]
   # allow.new.levels = TRUE means predict() won't bomb if new u_i or i_j
   # are encountered in test set not in the training set, as is likely
-  testSet$pred = predict(MLEobj,testSet[,-3],allowNewLvls=TRUE,cls=cls)
+  testSet$pred =  
+     if(is.null(cls)) {
+        predict(MLEobj,testSet[,-3],allow.new.levels=TRUE)
+     } else
+        predict(MLEobj,testSet[,-3],allow.new.levels=TRUE,cls=cls)
   numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
   result = list(ndata=nrowRatIn,trainprop=trainprop,numpredna=numpredna)

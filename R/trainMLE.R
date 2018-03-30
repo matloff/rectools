@@ -80,17 +80,17 @@ formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
 #
 # returns vector of predicted values for testSet
 
-predict.ydotsMLE <- function(ydotsObj,testSet) {
-   predict(ydotsObj,testSet)
+predict.ydotsMLE <- function(ydotsObj,testSet,allow.new.levels=TRUE) {
+   predict(ydotsObj,testSet,allow.new.levels=allow.new.levels)
 }
 
 # predict() method for the 'ydotsMLE' class
 predict.ydotsMLEpar <- 
-      function(ydotsMLEparObj,testSet,allowNewLvls=FALSE,cls) 
+      function(ydotsMLEparObj,testSet,allow.new.levels=FALSE,cls) 
 {
-   clusterExport(cls,c('testSet','allowNewLvls'),envir=environment())
+   clusterExport(cls,c('testSet','allow.new.levels'),envir=environment())
    preds <- clusterEvalQ(cls,predict(lmerout,testSet,
-      allow.new.levels=allowNewLvls))
+      allow.new.levels=allow.new.levels))
    Reduce('+',preds)/length(cls)
 }
 
