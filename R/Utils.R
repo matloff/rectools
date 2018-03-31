@@ -186,14 +186,14 @@ getCatPrefs <- function(usrInfo)
 {
    # rows of usrIDs by user
    n <- nrow(usrInfo)
-   usrRowGrps <- split(1:n,unique(usrInfo[,1]))
+   usrRowGrps <- split(1:n,usrInfo[,1])
    # for a given user, find his/her prefs
    oneUsrCatPrefs <- function(usrRows) {
-      usrChunk <- usrInfo[usrRows,]
-      tmp <- colSums(usrChunk[,-1])
-      tmp / sum(tmp)
+      usrChunk <- usrInfo[usrRows,,drop=FALSE]
+      tmp <- colSums(usrChunk[,-1,drop=FALSE])
+      tmp / nrow(usrChunk)
    }
-   res <- sapply(usrRowGrps,oneUsrCatPrefs)
+   res <- t(sapply(usrRowGrps,oneUsrCatPrefs))
    rownames(res) <- names(usrRowGrps)
    res
 }
