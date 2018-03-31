@@ -149,8 +149,11 @@ getCovCols <- function(userCovsStartCol=NULL,itemCovsStartCol=NULL,ncolRatingsIn
    list(usrCols=usrCols,itmCols=itmCols)
 }
 
+########################  factorToDummies()  ##############################
+
 # create a data frame of dummy variables from the factor f; col names
 # will optionally be prefixed by prfx
+
 factorToDummies <- function(f,prfx=NULL) {  
    lf <- length(f)
    d <- data.frame(z=rep(0,lf))
@@ -164,4 +167,33 @@ factorToDummies <- function(f,prfx=NULL) {
    d
 }
 
+########################  getCatPrefs()  ##############################
 
+# inputs a data frame whose first column is user IDs and succeeding
+# columns are dummies on item categories, e.g. genres for
+# films or music; outputs a data frame
+
+### NEEDS WORK
+
+## Browse[2]> z
+##      [,1] [,2] [,3]
+##      [1,]    5    0    1
+##      [2,]    2    0    1
+##      [3,]    5    0    1
+
+
+getCatPrefs <- function(usrInfo)
+{
+   # rows of usrIDs by user
+   n <- nrow(usrInfo)
+   usrRowGrps <- split(1:n,unique(usrInfo[,1]))
+   # for a given user, find his/her prefs
+   oneUsrCatPrefs <- function(usrRows) {
+      usrChunk <- usrInfo[usrRows,]
+      tmp <- colSums(usrChunk[,-1])
+      tmp / sum(tmp)
+   }
+   res <- sapply(usrRowGrps,oneUsrCatPrefs)
+   rownames(res) <- names(usrRowGrps)
+   res
+}
