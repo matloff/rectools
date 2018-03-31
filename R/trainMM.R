@@ -5,58 +5,50 @@
 
 #    accommodate matrices in addition to data frames, in order to all
 #    use of bigmemory package
-
-#    allow covariates that jointly involve users and items, e.g. general
-#    moviegoer genre preferences
-
-#  modified version of earlier trainMM() etc., May 27, 2017, with
-#  new approach to use of covariates X_ijk for user i, item j
-
-#  NOTE: the covariates will be centered; and since we will be
-#  regressing a random effect alpha or beta on the covariates, then the
-#  regression should be without an intercept term (use of -1 when
-#  specifying predictors in lm())
-
-#  NOTE: regression function choices limited to lm(), glm(), as the -1
-#  option is used in specifying that there is no intercept term; lm()
-#  only, for now
+#    
+#  for simplicity, the following discussion is at the population level
 
 #  basic model is
 #  
 #     Y = mu + alpha + beta + eps 
-#    
-#  for simplicity, the following discussion is at the population level
+#
+# with alpha, beta and eps being independent and having mean 0
 
-#  after regressing alpha and/or beta on the vector X of covariates then
-#  either alpha or beta or both are replaced by X in the prediction;
-#  e.g. if X depends only on the user covariates V, then our prediction
-#  is
+#  after regressing Y on the vector X of covariates then the model
+#  becomes
+#  
+#     Y = gamma'X  + alpha + beta + eps 
 #
-#     mu + gamma'V + beta
-#
-#  where gamma is the vector of regression coefficients; if we have both
-#  user covariates V and item covariates W, the prediction is
-#
-#     mu + gamma'V + eta'W
+#  with X including a 1 component 
 
-#  at the sample level, then for instance mu + gamma'V + beta becomes
-#
-#     hat(Y_ij) = hat(mu) + hat(gamma)'V_i + hat(beta_j)
-#
-#  set Y.. to the mean of all Y_ij, Y.j the mean of all Y_i,j fixed j
-#  etc.; the hat(mu) is Y.., hat(beta_j) is Y.j - Y.. etc.
+# on the sample level, define:
+# 
+# Y.. = overall sample mean 
+# Yi. = sample mean of the Y_ij over j for fixed i
+# Y.j = sample mean of the Y_ij over i for fixed j
+# Xi. = sample mean of the X_ij over j for fixed i
+# X.j = sample mean of the X_ij over i for fixed j
+# 
+# then set gammahat = result of regressing Y on X thoughout the sample
+# 
+# since E(beta) = 0, Yi. should be approximatley gammahat'Xi. + alpha_i, so set
+# 
+# alphahat_i = Yi. - gammahat' Xi.
+# 
+# and similarly
+# 
+# betahat_j = Y.j - gammahat' X.j
 
-# the coefficients can be estimated via lm() without a const term
+# the predicted value for Y_ij is then
+
+# gammahat' X_ij + alphahat_i + betahat_j
 
 #########################  trainMM()  ##############################
 
 # arguments:
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
-#              covariates); data frame; user covariates, if any, 
-#              must precede item covariates, if any
-#   userCovsStartCol: start column of user covariates, if any
-#   itemCovsStartCol: start column of user covariates, if any
+#              covariates)
 
 # value:
 
@@ -65,12 +57,7 @@
 #      Y..: grand mean, est of mu 
 #      Yi.: vector of mean ratings for each user, ests. of alpha_i
 #      Y.j: vector of mean ratings for each item, ests. of betaa_j
-#      usrCovCols: column numbers of the user covariates, if any
-#      itmCovCols: column numbers of the item covariates, if any
-#      lmoutUsr: object returned by running regression analysis for user
-#                covariates, if any
-#      lmoutItm: object returned by running regression analysis for item
-#                covariates, if any
+#      lmout: object returned by running the regression analysis 
 #      Ni.: vector of number of ratings by each user
 #      N.j: vector of number of ratings of each item
 
@@ -86,7 +73,15 @@ trainMM <- function(ratingsIn,userCovsStartCol=NULL,itemCovsStartCol=NULL)
   items <- as.character(items)
   ratings <- ratingsIn[,3]
   nms <- names(ratingsIn)
+  n <- nrow(ratingsIn)
+  userRows <- split(1:n,users)
+  itemRows <- split(1:n,items)
   Y.. <- mean(ratings)  # overall mean
+
+  uimean <- function(uirow) mean(ratings[uirow)
+  Yi. <- sapply(userRows,uimean)
+  Y.j <- sapply(itemRows,uimean)
+
   Yi. <- tapply(ratings,users,mean) # means of all ratings per user
   Y.j <- tapply(ratings,items,mean) # means of all ratings per item
   ydots <- list(grandMean=Y..,usrMeans=Yi.,itmMeans=Y.j)
