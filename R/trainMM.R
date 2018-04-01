@@ -89,15 +89,16 @@ trainMM <- function(ratingsIn)
      predsa <- predict(lmout,as.data.frame(Xi.))
      predsb <- predict(lmout,as.data.frame(X.j))
   } else {
-     predsa <- 0
-     predsb <- 0
+     Y.. <- mean(ratings)
+     predsa <- Y..
+     predsb <- Y..
   }
   
   alphai <- Yi. - predsa
   betaj <- Y.j - predsb
 
   ydots <- list(alphai=alphai,betaj=betaj)
-  if (haveCovs) ydots$lmout <- lmout else ydots$Y.. <- mean(ratings)
+  if (haveCovs) ydots$lmout <- lmout else ydots$Y.. <- Y..
   Ni. <- tapply(ratings,users,length) # number of ratings per user
   ydots$Ni. <- Ni.
      N.j <- tapply(ratings,users,length) # number of ratings per item
