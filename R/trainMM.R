@@ -107,6 +107,18 @@ trainMM <- function(ratingsIn)
   invisible(ydots)
 }
 
+######################  trainMMpar()  ############################
+
+trainMMpar <- function(ratingsIn,cls)
+{
+   require(partools)
+   distribsplit(ratingsIn)
+   clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
+   tmp <- list()  # nothing to return, "Leave It There" principle
+   class(tmp) <- 'ydotsMMpar'
+   tmp
+}
+
 ######################  predict.ydotsMM()  ############################
 
 # predict() method for the 'ydotsMM' class
@@ -145,5 +157,14 @@ predict.ydotsMM = function(ydotsObj,testSet)
    preds <- preds + usrAlphas + itmBetas
    names(preds) <- NULL  # use ordinal indexing
    preds
+}
+
+######################  predict.ydotsMM()  ############################
+
+predict.ydotsMMpar = function(ydotsObj,testSet,cls) 
+{
+   clusterExport(cls,c('testSet'))
+   preds <- clusterEvalQ(cls,predict(mmout,testSet))
+   Reduce('+',preds)/length(cls)
 }
 
