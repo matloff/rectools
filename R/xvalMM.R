@@ -2,6 +2,11 @@
 # splits input data into training and test sets, fits "ydots" model on
 # the former, then predicts the latter
 
+# both here and in the MLE case, we must deal with possibility that there
+# will be users and/or items in the test set not in the training set; in
+# the MLE case, this is handled by the predict() argument
+# allow.new.levels; here, we have a function deleteNewIDs()
+
 # arguments:
 
 #   ratingsIn: input data, with first cols (userID,itemID,rating,
@@ -17,30 +22,30 @@
 
 #    accuracy value
 
-xvalMM <- function(ratingsIn, trainprop=0.5, 
-    haveUserCovs=FALSE, haveItemCovs=FALSE, haveBoth=FALSE) 
+xvalMM <- function(ratingsIn, trainprop=0.9, cls=NULL)
 {
+  parCase <- !is.null(cls)
+  if (parCase) clusterEvalQ(cls,library(rectools))
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
+  # training stage
   rowNum = floor(trainprop * nrowRatIn)
   trainIdxs = sample(1:nrowRatIn,rowNum)
-  trainingSet = ratIn[trainIdxs, ]
-  trainRatings = trainingSet[,3]
-  trainItems = trainingSet[,2]
-  trainUsers = trainingSet[,1]
-  # get means
-  means = trainMM(trainingSet)
-  # Y.. = means$grandMean
-  # Yi. = means$usrMeans
-  # Y.j = means$itmMeans
+  trainSet = ratIn[trainIdxs, ]
+  trainRatings = trainSet[,3]
+  trainItems = trainSet[,2]
+  trainUsers = trainSet[,1]
+  mmout <- if(!parCase) trainMM(trainSet) else trainMMpar(trainSet,cls)
+  # test stage
   testIdxs <- setdiff(1:nrowRatIn,trainIdxs)
   testA = ratIn[testIdxs,]
-  tmp <- deleteNewIDs(testA,trainUsers,trainItems)
+  tmp <- deleteNewIDs(testA,trainUsers,trainItems)  # see note above
   testA <- tmp$testSet
   deleted <- tmp$deleted
-  pred = predict(means,testA[,-3], haveUserCovs=haveUserCovs, 
-     haveItemCovs=haveItemCovs, haveBoth=haveBoth)
+  pred <- 
+     if (!parCase) predict(mmout,testA[,-3]) else
+     predict(mmout,testA[,-3],cls=cls)
   # calculate accuracy 
   result = list(nFullData=nrowRatIn,trainprop=trainprop,preds=pred,
      deleted=deleted)

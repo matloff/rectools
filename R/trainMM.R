@@ -112,7 +112,8 @@ trainMM <- function(ratingsIn)
 trainMMpar <- function(ratingsIn,cls)
 {
    require(partools)
-   distribsplit(ratingsIn)
+   require(rectools)
+   distribsplit(cls,'ratingsIn')
    clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
    tmp <- list()  # nothing to return, "Leave It There" principle
    class(tmp) <- 'ydotsMMpar'
@@ -159,11 +160,11 @@ predict.ydotsMM = function(ydotsObj,testSet)
    preds
 }
 
-######################  predict.ydotsMM()  ############################
+######################  predict.ydotsMMpar()  ############################
 
 predict.ydotsMMpar = function(ydotsObj,testSet,cls) 
 {
-   clusterExport(cls,c('testSet'))
+   clusterExport(cls,'testSet',envir=environment())
    preds <- clusterEvalQ(cls,predict(mmout,testSet))
    Reduce('+',preds)/length(cls)
 }
