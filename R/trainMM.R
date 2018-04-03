@@ -67,6 +67,7 @@ trainMM <- function(ratingsIn)
   items <- as.character(items)
   ratings <- ratingsIn[,3]
   nms <- names(ratingsIn)
+  haveCovs <- ncol(ratingsIn) > 3
 
   n <- nrow(ratingsIn)
   userRowGrps <- split(1:n,users)
@@ -76,16 +77,15 @@ trainMM <- function(ratingsIn)
   Yi. <- sapply(userRowGrps,uimean)
   Y.j <- sapply(itemRowGrps,uimean)
 
-  xmeans <- function(uirowgrp) colMeans(ratingsIn[uirowgrp,-(1:3),drop=FALSE])
-  Xi. <- t(sapply(userRowGrps,xmeans))
-  X.j <- t(sapply(itemRowGrps,xmeans))
 
-  haveCovs <- ncol(ratingsIn) > 3
   if (haveCovs) {
-  # get gammahat and associated 'lm' object
+     # get gammahat and associated 'lm' object
      cmd <- paste('lmout <- lm(', nms[3],
                ' ~ .,data=ratingsIn[,-(1:2)])', sep='')
      eval(parse(text=cmd))
+     xmeans <- function(uirowgrp) colMeans(ratingsIn[uirowgrp,-(1:3),drop=FALSE])
+     Xi. <- t(sapply(userRowGrps,xmeans))
+     X.j <- t(sapply(itemRowGrps,xmeans))
      predsa <- predict(lmout,as.data.frame(Xi.))
      predsb <- predict(lmout,as.data.frame(X.j))
   } else {
@@ -114,8 +114,8 @@ trainMMpar <- function(ratingsIn,cls)
    require(partools)
    require(rectools)
    distribsplit(cls,'ratingsIn')
-   clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
-   tmp <- list()  # nothing to return, "Leave It There" principle
+   tmp <- clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
+   mmout <- list()
    class(tmp) <- 'ydotsMMpar'
    tmp
 }
