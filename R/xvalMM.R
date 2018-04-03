@@ -125,5 +125,5 @@ xvSmallNi <- function(ratIn,maxN,minN) {
    smallNi <- which(NiVals <= maxN)
    rows <- as.numeric(names(smallNi))
    smallRatIn <- ratIn[rows,]
-   xvalMM(smallRatIn,trainprop=0.8,minN = minN,haveBoth=T)$acc
+   xvalMM(smallRatIn)$acc
 }
