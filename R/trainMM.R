@@ -111,13 +111,16 @@ trainMM <- function(ratingsIn)
 
 trainMMpar <- function(ratingsIn,cls)
 {
+   warning('the parallel version of trainMMpar is too slow for use')
    require(partools)
    require(rectools)
+   n <- nrow(ratingsIn)
+   ratingsIn <- ratingsIn[sample(1:n,n,replace=FALSE),]
    distribsplit(cls,'ratingsIn')
    tmp <- clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
    mmout <- list()
-   class(tmp) <- 'ydotsMMpar'
-   tmp
+   class(mmout) <- 'ydotsMMpar'
+   mmout
 }
 
 ######################  predict.ydotsMM()  ############################
