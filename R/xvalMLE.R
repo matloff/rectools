@@ -6,7 +6,7 @@
 
 #   ratingsIn: input data, with first cols (userID,itemID,rating,
 #              covariates)
-#   trainprop: proportion of data for the training set
+#   holdout: number of cases for the test set
 #   cls: if non-null, do this in parallel
 
 # in the parallel case, use 'partools' philosophy of Leave It There;
@@ -16,26 +16,30 @@
 
 #    accuracy value
 
-xvalMLE <- function(ratingsIn, trainprop=0.8,cls=NULL){
+xvalMLE <- function(ratingsIn, holdout=10000,cls=NULL,printTimes=TRUE){
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
-  rowNum = floor(trainprop * nrowRatIn)
-  trainIdxs = sample(1:nrowRatIn,rowNum)
-  trainingSet = ratIn[trainIdxs, ]
-  MLEobj = trainMLE(trainingSet,cls)
-  testIdxs = setdiff(1:nrowRatIn,trainIdxs)
+  testIdxs = sample(1:nrowRatIn,holdout)
+  trainingSet = ratIn[-testIdxs, ]
+  tmp <- system.time(
+     MLEobj <- trainMLE(trainingSet,cls)
+  )
+  if (printTimes) cat('training time: ',tmp,'\n')
   testSet = ratIn[testIdxs,]
   # allow.new.levels = TRUE means predict() won't bomb if new u_i or i_j
   # are encountered in test set not in the training set, as is likely
-  testSet$pred =  
-     if(is.null(cls)) {
-        predict(MLEobj,testSet[,-3],allow.new.levels=TRUE)
-     } else
-        predict(MLEobj,testSet[,-3],allow.new.levels=TRUE,cls=cls)
+  tmp <- system.time(
+     testSet$pred <-  
+        if(is.null(cls)) {
+           predict(MLEobj,testSet[,-3],allow.new.levels=TRUE)
+        } else
+           predict(MLEobj,testSet[,-3],allow.new.levels=TRUE,cls=cls)
+  )
+  if (printTimes) cat('validation time: ',tmp,'\n')
   numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
-  result = list(ndata=nrowRatIn,trainprop=trainprop,numpredna=numpredna)
+  result = list(ndata=nrowRatIn,holdout=holdout,numpredna=numpredna)
   # accuracy measures
   exact <- mean(round(testSet$pred) == testSet[,3],na.rm=TRUE)
   mad <- mean(abs(testSet$pred-testSet[,3]),na.rm=TRUE)

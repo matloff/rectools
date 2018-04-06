@@ -13,7 +13,7 @@
 #              covariates); data frame, unless cls is non-null, in which
 #              case this argument is the quoted name of the distributed 
 #              data frame
-#   trainprop: proportion of data for the training set
+#   holdout: number of cases for the test data
 #   accmeasure: accuracy measure; 'exact', 'mad', 'rms' for
 #               prop of exact matches, mean absolute error, and
 #               root-mean square error
@@ -22,7 +22,7 @@
 
 #    accuracy value
 
-xvalMM <- function(ratingsIn, trainprop=0.9, cls=NULL)
+xvalMM <- function(ratingsIn,holdout=10000,cls=NULL,printTimes=TRUE)
 {
   parCase <- !is.null(cls)
   if (parCase) clusterEvalQ(cls,library(rectools))
@@ -30,24 +30,28 @@ xvalMM <- function(ratingsIn, trainprop=0.9, cls=NULL)
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
   # training stage
-  rowNum = floor(trainprop * nrowRatIn)
-  trainIdxs = sample(1:nrowRatIn,rowNum)
-  trainSet = ratIn[trainIdxs, ]
+  testIdxs = sample(1:nrowRatIn,holdout)
+  trainSet = ratIn[-testIdxs, ]
   trainRatings = trainSet[,3]
   trainItems = trainSet[,2]
   trainUsers = trainSet[,1]
-  mmout <- if(!parCase) trainMM(trainSet) else trainMMpar(trainSet,cls)
+  tmp <- system.time(
+     mmout <- if(!parCase) trainMM(trainSet) else trainMMpar(trainSet,cls)
+  )
+  if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
-  testIdxs <- setdiff(1:nrowRatIn,trainIdxs)
   testA = ratIn[testIdxs,]
   tmp <- deleteNewIDs(testA,trainUsers,trainItems)  # see note above
   testA <- tmp$testSet
   deleted <- tmp$deleted
-  pred <- 
-     if (!parCase) predict(mmout,testA[,-3]) else
-     predict(mmout,testA[,-3],cls=cls)
+  tmp <- system.time(
+     pred <- 
+        if (!parCase) predict(mmout,testA[,-3]) else
+        predict(mmout,testA[,-3],cls=cls)
+  )
+  if (printTimes) cat('training time: ',tmp,'\n')
   # calculate accuracy 
-  result = list(nFullData=nrowRatIn,trainprop=trainprop,preds=pred,
+  result = list(nFullData=nrowRatIn,holdout=holdout,preds=pred,
      deleted=deleted)
   # accuracy measures
   exact <- mean(round(pred) == testA[,3],na.rm=TRUE)
