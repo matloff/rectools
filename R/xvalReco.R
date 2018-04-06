@@ -9,7 +9,7 @@
 
 # arguments:
 
-#    trainprop: proportion of data to allocate to training set
+#    holdout: number of cases for the test set
 #    cls: an R 'parallel' cluster
 #    rnk: desired rank for P,Q 
 #    nmf: if TRUE, use NMF else SVD
@@ -17,21 +17,36 @@
 # value: object of class 'xvalreco', consisting mainly of various
 # prediction accuracy measures, plus the number of NA predictions
 
-xvalReco <- function(ratingsIn, trainprop=0.8,cls=NULL, 
-               rnk=10,nmf=FALSE)  
+xvalReco <- function(ratingsIn, holdout=10000,cls=NULL, 
+               rnk=10,nmf=TRUE,printTimes=TRUE)  
 {
-    require(recosystem)
-    trainSet = getTrainSet(ratingsIn, trainprop)
-    testSet = getTestSet(ratingsIn, trainSet)
+  if (!is.null( stop('parallel version not usable at this time')
+  require(recosystem)
+  testIdxs = sample(1:nrow(ratingsIn),holdout)
+  trainSet = ratingsIn[-testIdxs,]
+  testSet = ratingsIn[testIdxs,]
   if(is.null(cls)){
-    res = trainReco(trainSet,rnk=rnk,nmf=nmf)
-    totalPreds = predict(res,testSet)
+     trainTime <- system.time(
+        res <- trainReco(trainSet,rnk=rnk,nmf=nmf)
+     )
+     predTime <- system.time(
+        totalPreds <- predict(res,testSet)
+     )
   } else {
-    res <- trainRecoPar(trainSet,rnk=rnk,nmf=nmf,cls=cls)
-    totalPreds <- predict(res,testSet,cls)
+     trainTime <- system.time(
+        res <- trainRecoPar(trainSet,rnk=rnk,nmf=nmf,cls=cls)
+     )
+     predTime <- system.time(
+        totalPreds <- predict(res,testSet,cls)
+     )
+  }
+  if (printTimes) {
+     print('training, test times:')
+     print(trainTime)
+     print(predTime)
   }
   numpredna = sum(is.na(totalPreds))
-  result = list(ndata = nrow(ratingsIn),trainprop = trainprop, 
+  result = list(ndata = nrow(ratingsIn),holdout = holdout, 
                 numpredna = numpredna)
   # accuracy measures
   exact <- mean(round(totalPreds) == testSet[,3],na.rm=TRUE)
