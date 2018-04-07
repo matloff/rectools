@@ -111,17 +111,21 @@ trainMM <- function(ratingsIn)
 
 # probably useful only if ratingsIn is already distributed, either read
 # it from a distributed file or the result of a previous call to
-# distribsplit(); signified by the ratingsIn = NULL
+# distribsplit(); signified by the argument ratingsIn being a character
+# string specifying the name of the distributed object
 
 trainMMpar <- function(ratingsIn,cls)
 {
    require(partools)
    require(rectools)
-   n <- nrow(ratingsIn)
-   ratingsIn <- ratingsIn[sample(1:n,n,replace=FALSE),]
-   if (!is.null(ratingsIn)) {
+   if (!is.character(ratingsIn)) {
       distribsplit(cls,'ratingsIn')
       warning('parallel version likely slow here')
+   } else {
+      rIn <- ratingsIn
+      clusterExport(cls,'rIn',envir=environment())
+      clusterEvalQ(cls,cmd <- paste('ratingsIn <<- ',rIn))
+      clusterEvalQ(cls,eval(parse(text=cmd)))
    }
    tmp <- clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
    mmout <- list()
