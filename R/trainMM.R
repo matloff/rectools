@@ -109,14 +109,20 @@ trainMM <- function(ratingsIn)
 
 ######################  trainMMpar()  ############################
 
+# probably useful only if ratingsIn is already distributed, either read
+# it from a distributed file or the result of a previous call to
+# distribsplit(); signified by the ratingsIn = NULL
+
 trainMMpar <- function(ratingsIn,cls)
 {
-   warning('the parallel version of trainMMpar is too slow for use')
    require(partools)
    require(rectools)
    n <- nrow(ratingsIn)
    ratingsIn <- ratingsIn[sample(1:n,n,replace=FALSE),]
-   distribsplit(cls,'ratingsIn')
+   if (!is.null(ratingsIn)) {
+      distribsplit(cls,'ratingsIn')
+      warning('parallel version likely slow here')
+   }
    tmp <- clusterEvalQ(cls,mmout <- trainMM(ratingsIn))
    mmout <- list()
    class(mmout) <- 'ydotsMMpar'

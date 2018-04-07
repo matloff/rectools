@@ -14,18 +14,20 @@
 #              case this argument is the quoted name of the distributed 
 #              data frame
 #   holdout: number of cases for the test data
-#   accmeasure: accuracy measure; 'exact', 'mad', 'rms' for
-#               prop of exact matches, mean absolute error, and
-#               root-mean square error
+#   cls: R 'parallel' cluster
+#   printTimes: if TRUE, print the training and validation times
 
 # value:
 
-#    accuracy value
+#    accuracy values (MAE, RMS etc.)
 
 xvalMM <- function(ratingsIn,holdout=10000,cls=NULL,printTimes=TRUE)
 {
   parCase <- !is.null(cls)
-  if (parCase) clusterEvalQ(cls,library(rectools))
+  if (parCase) {
+     warning('see comments in trainMMpar()')
+     clusterEvalQ(cls,library(rectools))
+  }
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
@@ -49,7 +51,7 @@ xvalMM <- function(ratingsIn,holdout=10000,cls=NULL,printTimes=TRUE)
         if (!parCase) predict(mmout,testA[,-3]) else
         predict(mmout,testA[,-3],cls=cls)
   )
-  if (printTimes) cat('training time: ',tmp,'\n')
+  if (printTimes) cat('validation time: ',tmp,'\n')
   # calculate accuracy 
   result = list(nFullData=nrowRatIn,holdout=holdout,preds=pred,
      deleted=deleted)
