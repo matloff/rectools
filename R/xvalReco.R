@@ -20,7 +20,6 @@
 xvalReco <- function(ratingsIn, holdout=10000,cls=NULL, 
                rnk=10,nmf=TRUE,printTimes=TRUE)  
 {
-  if (!is.null(cls)) stop('parallel version not usable at this time')
   require(recosystem)
   testIdxs = sample(1:nrow(ratingsIn),holdout)
   trainSet = ratingsIn[-testIdxs,]

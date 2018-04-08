@@ -58,12 +58,16 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
 
 # value:  object of class 'RecoS3par', consisting of pqName
 
-trainRecoPar <- function(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ') 
+trainRecoPar <- 
+   function(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ',printTimes=TRUE) 
 {
    require(recosystem)
    require(partools)
    clusterEvalQ(cls,require(recosystem))
-   distribsplit(cls,'ratingsIn',scramble=TRUE)
+   tmp <- system.time(
+      distribsplit(cls,'ratingsIn')
+   )
+   if (printTimes) cat('distribsplit time: ',tmp,'\n')
    clusterExport(cls,c('rnk','nmf','pqName','predict.RecoS3'),
       envir=environment())
 
