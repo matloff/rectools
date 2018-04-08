@@ -16,7 +16,7 @@
 
 #   ydotsMLEpar (if non-NULL cls): S3 class with components of class ydotsMLE
 
-trainMLE <- function(ratingsIn,cls=NULL) {
+trainMLE <- function(ratingsIn,cls=NULL,printTimes=TRUE) {
   require(lme4)
   nms <- names(ratingsIn)
   haveCovs = ncol(ratingsIn) > 3
@@ -39,7 +39,10 @@ trainMLE <- function(ratingsIn,cls=NULL) {
   } else {
      require(partools)
      clusterEvalQ(cls,require(lme4))
-     distribsplit(cls,'ratingsIn')
+     tmp <- system.time(
+        distribsplit(cls,'ratingsIn')
+     )
+     if (printTimes) cat('distribsplit time: ',tmp,'\n')
      clusterExport(cls,'frml',envir=environment())
      clusterExport(cls,c('nms','haveCovs'),envir=environment())
      lmerout <- clusterEvalQ(cls,lmerout <- lmer(frml,data=ratingsIn))
