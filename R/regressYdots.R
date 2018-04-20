@@ -18,8 +18,11 @@
 # age and gender, those for item j might be genre, and a joint
 # covariate might be user i's general liking for the genre of item j.
 
-# It seems intuitive that Yi. and Y.j would be reasonable candidates 
-# for predictors. 
+# It seems intuitive that Yi. and Y.j would be reasonable candidates for
+# predictors, regardless of whether the above model is correct.  (Note
+# that the model for the regression function amy still be correct; the
+# regression function of Y on alpha and beta does exist, where mu+alpha
+# and mu+beta are the limits of Yi. and Y.j
 
 # Any regression model can be used, e.g. linear, logistic, random
 # forests, neural networks, etc.
