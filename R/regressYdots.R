@@ -121,3 +121,8 @@ IDsToMeans <- function(ratingsIn)
    x <- cbind(means,covs)
    x
 }
+
+predict.regYdots <- function(rgydObj,newdata) 
+{
+   predict(rgydObj$regOut,newdata)
+}
