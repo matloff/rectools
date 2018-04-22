@@ -35,8 +35,6 @@
 #              'lm'; 'glm' with family = binomial; 'rf' (random forest);
 #              'poly' (polyreg package)
 #              
-#    ydotsObj: output from trainMM(), to get the user and item means; if
-#              NULL, will be generated here
 #    rmArgs: regression model arguments, e.g. number of nearest
 #            neighbors; expressed as a quoted string; not implemented yet
 
@@ -52,10 +50,10 @@
 # when predicting new observations, don't forget to call IDstoMeans() on
 # the new data
 
-regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL) 
+regressYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL) 
 {
 
-   x <- IDsToMeans(ratingsIn,ydotsObj=ydotsObj)
+   x <- IDsToMeans(ratingsIn)
    y <- ratingsIn[,3]
    xy <- cbind(x,y)
    names(xy) <- c(names(x),'rats')
@@ -84,7 +82,7 @@ regressYdots <- function(ratingsIn,regModel='lm',ydotsObj=NULL,rmArgs=NULL)
 # converts the first two columns of ratingsIn from user/item IDs to
 # user/item ratings means; copies the covs (columns 4+, if any); adjusts
 # column names accordingly
-IDsToMeans <- function(ratingsIn,ydotsObj=NULL) 
+IDsToMeans <- function(ratingsIn) 
 {
    # handle covariates first
    covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
@@ -93,11 +91,16 @@ IDsToMeans <- function(ratingsIn,ydotsObj=NULL)
       colnames(covs) <- names(ratingsIn[,-(1:3)]) 
    }
 
-   if (is.null(ydotsObj)) ydotsObj <- trainMM(ratingsIn[,1:3])
+   users <- as.character(ratingsIn[,1])
+   items <- as.character(ratingsIn[,2])
+   ratings <- ratingsIn[,3]
 
-   # convert user, item IDs to means
-   usrMeans <- ydotsObj$usrMeans
-   itmMeans <- ydotsObj$itmMeans
+   # could add code to allow reusing previous computation
+   Ni. <- tapply(ratings,users,length) # number of ratings per user
+   N.j <- tapply(ratings,items,length) # number of ratings per item
+   usrMeans <- tapply(ratings,users,mean)
+   itmMeans <- tapply(ratings,items,mean)
+   
    # as explained above, usrMeans and itmMeans are indexed by character
    # versions of user/item IDs; thus again, the next 2 lines are needed 
    # due to character indexing of usrMeans and itmMeans
@@ -107,8 +110,10 @@ IDsToMeans <- function(ratingsIn,ydotsObj=NULL)
    iMeans <- itmMeans[itmsInput]
    # uMeans, iMeans have length = nrow(ratingsIn); e.g. i-th element of
    # uMeans is Yi.
-   means <- data.frame(uMeans=uMeans,iMeans=iMeans)
-   names(means) <- c('uMeans','iMeans')
+   uN <- Ni.[usrsInput]
+   iN <- N.j[itmsInput]
+   means <- data.frame(uMeans=uMeans,iMeans=iMeans,uN=uN,iN=iN)
+   names(means) <- c('uMeans','iMeans','uN','iN')
    x <- cbind(means,covs)
    x
 }
