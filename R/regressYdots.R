@@ -58,6 +58,9 @@ regressYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL)
    xy <- cbind(x,y)
    names(xy) <- c(names(x),'rats')
 
+   result <- list(x=x, y=y)  # ultimately the return value
+   class(result) <- 'regYdots'
+
    # perform the regression analysis
    if (regModel %in% c('lm','glm')) {
       cmd <- paste0(regModel,'(')
@@ -65,18 +68,19 @@ regressYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL)
       if (!is.null(rmArgs)) {
          cmd <- paste0(cmd,',',rmArgs,')')
       } else cmd <- paste0(cmd,')')
-      return(eval(parse(text=cmd)))
-   }
-   if (regModel == 'rf') {
+      regOut <- eval(parse(text=cmd))
+   } else if (regModel == 'rf') {
       require(randomForest)
-      return(randomForest(x,y))
-   } 
-   if (regModel == 'poly') {
+      regOut <- randomForest(x,y)
+   } else if (regModel == 'poly') {
       require(polyreg)
       cmd <- 'polyFit(xy,'
       cmd <- paste0(cmd,rmArgs,')')
-      return(eval(parse(text=cmd)))
+      regOut <- eval(parse(text=cmd))
    } 
+
+   result$regOut <- regOut
+   result
 }
 
 # converts the first two columns of ratingsIn from user/item IDs to
