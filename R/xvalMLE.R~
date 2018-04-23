@@ -5,50 +5,58 @@
 # arguments:
 
 #   ratingsIn: input data, with first cols (userID,itemID,rating,
-#              covariates); data frame, unless cls is non-null, in which
-#              case this argument is the quoted name of the distributed 
-#              data frame
-#   trainprop: proportion of data for the training set
-#   accmeasure: accuracy measure; 'exact', 'mad', 'rms' for
-#               prop of exact matches, mean absolute error, and
-#               root-mean square error
+#              covariates)
+#   holdout: number of cases for the test set
 #   cls: if non-null, do this in parallel
+
+# in the parallel case, use 'partools' philosophy of Leave It There;
+# see comments in trainMLE.R
 
 # value:
 
 #    accuracy value
 
-xvalMLE <- function(ratingsIn, trainprop=0.5,
-    accmeasure=c('exact','mad','rms'),cls=NULL){
-  if(!is.null(cls)) stop('parallel version under construction')
-  if(is.null(cls)) ratIn = ratingsIn else ratIn = get(ratingsIn)
+xvalMLE <- function(ratingsIn, holdout=10000,cls=NULL,printTimes=TRUE){
+  ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
-  rowNum = floor(trainprop * nrowRatIn)
-  trainIdxs = sample(1:nrowRatIn,rowNum)
-  trainingSet = ratIn[trainIdxs, ]
-  trainRatings = trainingSet[,3]
-  trainItems = trainingSet[,2]
-  trainUsers = trainingSet[,1]
-  # get means
-  means = findYdotsMLE(trainingSet,cls)
-  testA = ratIn[setdiff(1:nrowRatIn,trainIdxs),]
-  ### testA$pred = predict(means,testA[,-3])  # predict.ydots
-  testA$pred = predict(means,testA[,-3])
-  numpredna = sum(is.na(testA$pred))
+  testIdxs = sample(1:nrowRatIn,holdout)
+  trainingSet = ratIn[-testIdxs, ]
+  tmp <- system.time(
+     MLEobj = trainMLE(trainingSet,cls)
+  )
+  if (printTimes) cat('training time: ',tmp,'\n')
+  testSet = ratIn[testIdxs,]
+  # allow.new.levels = TRUE means predict() won't bomb if new u_i or i_j
+  # are encountered in test set not in the training set, as is likely
+  tmp <- system.time(
+     testSet$pred <-  
+        if(is.null(cls)) {
+           predict(MLEobj,testSet[,-3],allow.new.levels=TRUE)
+        } else
+           predict(MLEobj,testSet[,-3],allow.new.levels=TRUE,cls=cls)
+  )
+  if (printTimes) cat('validation time: ',tmp,'\n')
+  numpredna = sum(is.na(testSet$pred))
   # calculate accuracy 
-  accmeasure = match.arg(accmeasure)
-  result = list(ndata=nrowRatIn,trainprop=trainprop,
-     accmeasure=accmeasure,numpredna=numpredna)
-  if (accmeasure == 'exact') {
-     testA$pred = round(testA$pred)
-     acc = mean(testA$pred == testA[,3],na.rm=TRUE)
-  } else if (accmeasure == 'mad') {
-     acc = mean(abs(testA$pred-testA[,3]),na.rm=TRUE)
-  } else if (accmeasure == 'rms') {
-     acc = sqrt(mean((testA$pred-testA[,3])^2,na.rm=TRUE))
-  }
-  result$acc = acc
+  result = list(ndata=nrowRatIn,holdout=holdout,numpredna=numpredna)
+  # accuracy measures
+  exact <- mean(round(testSet$pred) == testSet[,3],na.rm=TRUE)
+  mad <- mean(abs(testSet$pred-testSet[,3]),na.rm=TRUE)
+  rms= sqrt(mean((testSet$pred-testSet[,3])^2,na.rm=TRUE))
+  # if just guess mean
+  meanRat <- mean(testSet[,3],na.rm=TRUE)
+  overallexact <-
+     mean(round(meanRat) == testSet[,3],na.rm=TRUE)
+  overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
+  overallrms <- sd(testSet[,3],na.rm=TRUE)
+  result$acc <- list(exact=exact,mad=mad,rms=rms,
+     overallexact=overallexact,
+     overallmad=overallmad,
+     overallrms=overallrms)
+  result$idxs <- testIdxs
+  result$preds <- testSet$pred
+  result$actuals <- testSet[,3]
   class(result) <- 'xvalb'
   result
 }

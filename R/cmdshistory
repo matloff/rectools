@@ -1,0 +1,255 @@
+library(rectools)
+getInstEval()
+setwd('~/Research/RecSysts/RecTools/rectools/R')
+srci('regressYdots.R')
+znn <- regressYdots(ivl,rmArgs='output="linear",hidden=c(2,2)')
+srci('regressYdots.R')
+srci('regressYdots.R')
+srci('regressYdots.R')
+znn <- regressYdots(ivl,rmArgs='output="linear",hidden=c(2,2)')
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+srci('regressYdots.R')
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+srci('regressYdots.R')
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+mode(ivl[,1])
+ivl[,1] <- as.numeric(ivl[,1])
+ivl[,2] <- as.numeric(ivl[,2])
+ivl[,3] <- as.numeric(ivl[,3])
+ivl[,1:3] <- as.matrix(ivl[,1:3])
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+ivl[,1:3] <- as.matrix(ivl[,-3])
+znn <- regressYdots(ivl,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+class(ivl[,-3])
+x <- as.matrix(ivl[,-3])
+znn <- regressYdots(x,ivl[3],regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+xy <- cbind(x,ivl[,3])
+class(xy)
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+mode(xy)
+debug(regressYdots)
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+n
+class(x)
+?nn.train
+Q
+srci('regressYdots.R')
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+znnp <- nn.predict(znn,znn$x)
+class(znn$x)
+srci('regressYdots.R')
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+znnp <- nn.predict(znn,znn$x)
+class(znn$x)
+class(znn$y)
+odf()
+znnp <- nn.predict(znn,znn$x)
+znnp <- nn.predict(znn,znn$x)
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+znnp <- nn.predict(znn,znn$x)
+debugger()
+debug(nn.predict)
+srci('regressYdots.R')
+srci('regressYdots.R')
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+srci('regressYdots.R')
+znn <- regressYdots(xy,regModel='dn',rmArgs='output="linear",hidden=c(2,2)')
+znnp <- nn.predict(znn,znn$x)
+c
+undebug(predict.regYdots)
+undebug(nn.predict)
+znnp <- nn.predict(znn,znn$x)
+debug(nn.predict)
+znnp <- nn.predict(znn,znn$x)
+n
+class(x)
+n
+t(nn$W[[i - 1]] %*% t(post) + nn$B[[i - 1]])
+str(W)
+class(nn)
+class(nn$W)
+Q
+znnp <- nn.predict(znn$regOut,znn$x)
+c
+head(znnp)
+znnp
+mean(abs(znnp-ivl[,3]))
+str(znn$x)
+x <- znn$x
+str(x)
+srci('regressYdots.R')
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl)
+head(ivl)
+debug(xvalRegYdots)
+xvalRegYdots(ivl)
+n
+head(testA)
+n
+class(ryout)
+z <- predict(ryout, testA[, -3])
+debug(predict)
+predict(ryout, testA[, -3)
+predict(ryout, testA[, -3])
+n
+rgydObj$regModel
+n
+predict(rgydObj$regOut, newdata)
+head(newdata)
+Q
+xvalRegYdots(ivl)
+n
+head(newdata)
+n
+head(newdata)
+Q
+srci('xvalRegYdots.R')
+cmde()
+xvalRegYdots(ivl) 
+debugger()
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+c
+c
+c
+c
+undebug(predict)
+xvalRegYdots(ivl) 
+debugger()
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+n
+head(testA)
+predict(ryout, testA[, -ncx])
+debugger()
+head(testA)
+Q
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+c
+xvalRegYdots(ivl) 
+head(testA)
+ncx
+dim(testA)
+Q
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+c
+xvalRegYdots(ivl) 
+n
+ncx
+Q
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+n
+dim(testA)
+n
+dim(x)
+head(x)
+n
+n
+dim(testA)
+Q
+srci('xvalRegYdots.R')
+xvalRegYdots(ivl) 
+c
+srci('xvalRegYdots.R')
+source('xvalRegYdots.R')
+xvrylm <- xvalRegYdots(ivl)
+c
+xvrylm$acc
+names(xvrylm)
+xvrylm$preds
+head(ivl)
+dim(ivl)
+z <- ivl[,7:19]
+zs <- apply(z,1,sum)
+zs
+xvrylm$preds
+names(xvrylm$preds)
+names(xvrylm)
+names(xvrylm$deleted)
+xvrylm <- xvalRegYdots(ivl)
+n
+n
+dim(testA)
+n
+str(tmp)
+edit(deleteNewIDs)
+Q
+xvrylm <- xvalRegYdots(ivl)
+n
+Q
+xvrylm <- xvalRegYdots(ivl)
+n
+dim(testA)
+str(trainUsers)
+str(trainItems)
+s
+n
+head(rns)
+uts <- unique(testSet[, 1])
+str(uts)
+head(testSet[,1])
+head(testSet[,1],50)
+head(testSet)
+Q
+debug(IDsToMeans)
+xvrylm <- xvalRegYdots(ivl)
+n
+head(users)
+head(users,25)
+n
+head(Ni.,25)
+n
+tapply(ratings, users, mean)
+which(ratings[,1] = '94)
+which(ratings[,1] == '94)
+which(ratings[,1] == '94')
+edit(IDsToMeans)
+head(ratings)
+which(ratingsIn[,1] == '94')
+w94 <- which(ratingsIn[,1] == '94')
+mean(ratingsIn[w94,3])
+Q
+getInstEval()
+ratingsIn[ <- ivl
+ratingsIn <- ivl
+w94 <- which(ratingsIn[,1] == '94')
+w94
+ratingsIn[w94,3]
+mean(ratingsIn[w94,3])
+xvrylm <- xvalRegYdots(ivl)
+c
+c
+c
+xvrylm$acc
+xvrylm$deleted
+uir <- data.frame(u = c(5,2,5,1,3,1), i = c(15,14,14,18,12,12), r = c(2,2,5,1,2,6))
+uir
+zlm <- trainRegYdots(uir)
+c
+zlm
+uir
+lm(zlm$y ~ zlm$x)
+xm <- as.matrix(x)
+lm(zlm$y ~ zlm$xm)
+lm(zlm$y ~ xm)
+y <- zlm$y
+lm(y ~ xm)
+str(xm)
+xm <- as.matrix(zlm$x)
+lm(y ~ xm)
+y <- c(y,8)
+xm
+xm <- rbind(xm,c(2.2,3.8,1,2))
+xm
+lm(y ~ xm)
+trainRegYdots(uir)
+c
+cmde()
