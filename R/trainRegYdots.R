@@ -95,10 +95,10 @@ trainRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL)
 IDsToMeans <- function(ratingsIn) 
 {
    # handle covariates first
-   covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
-   if (!is.null(covs)) {
-      covs <- as.data.frame(covs)
-      colnames(covs) <- names(ratingsIn[,-(1:3)]) 
+   if (ncol(ratingsIn) > 3) {
+      covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
+      # covs <- as.data.frame(covs)
+      dimnames(covs)[[2]] <- names(ratingsIn[,-(1:3)]) 
    }
 
    users <- as.character(ratingsIn[,1])

@@ -16,20 +16,21 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   trainRatings = trainSet[,3]
   trainItems = trainSet[,2]
   trainUsers = trainSet[,1]
+  testA = ratIn[testIdxs,]
   tmp <- system.time(
      ryout <- trainRegYdots(trainSet,regModel=regModel,rmArgs=rmArgs) 
   )
   if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
   browser()
-  testA = ratIn[testIdxs,]
+  # which users or items are in the test set but not the training set?
+  deleted <- deleteNewIDsAlt(testA,trainUsers,trainItems)  
+  nondeleted <- setdiff(row.names(testA),deleted)
+  testA <- testA[nondeleted,]
   # need to convert to Ydots form
   x <- IDsToMeans(testA)
   if (regModel == 'dn') x <- scale(x)
-  testA <- cbind(x,ratIn[testIdxs,3])
-  tmp <- deleteNewIDs(testA,trainUsers,trainItems)  # see note, xvalMM.R 
-  testA <- tmp$testSet
-  deleted <- tmp$deleted
+  testA <- cbind(x,ratIn[nondeleted,3])
   tmp <- system.time(
      pred <- predict(ryout,testA[,-ncol(testA)]) 
   )
@@ -60,7 +61,7 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
 }
 
 # any users or items in test set but not the training set?
-deleteNewIDs <- function(testSet,trainUsers,trainItems)
+deleteNewIDsAlt <- function(testSet,trainUsers,trainItems)
 {
    deleted <- NULL  # named row numbers from the original full data
    rns <- row.names(testSet)
@@ -71,7 +72,6 @@ deleteNewIDs <- function(testSet,trainUsers,trainItems)
          # tmp1 is ordinal row numbers within testSet; the latter may
          # have shrunken in earlier iterations!
          deleted <- c(deleted,row.names(testSet[tmp1,]))
-         testSet <- testSet[-tmp1,]
       }
    }
    tmp <- setdiff(unique(testSet[,2]),unique(trainItems))
@@ -84,8 +84,7 @@ deleteNewIDs <- function(testSet,trainUsers,trainItems)
          testSet <- testSet[-tmp1,]
       }
    }
-   deleted <- unique(deleted)
-   list(testSet = testSet, deleted = deleted)
+   unique(deleted)
 }
 
 # check
