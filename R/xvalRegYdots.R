@@ -22,13 +22,15 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   )
   if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
-  # which users or items are in the test set but not the training set?
+  # delete users or items are in the test set but not the training set
   deleted <- deleteNewIDsAlt(testA,trainUsers,trainItems)  
   nondeleted <- setdiff(row.names(testA),deleted)
   testA <- testA[nondeleted,]
+  # get (user means, item means, uN, iN) data
   browser()
-  # need to convert to Ydots form
-  x <- IDsToMeans(testA)
+  trainUINN <- ryout$UINN
+  # need to convert test data to Ydots form
+  x <- convertX(testA,trainUINN)
   if (regModel == 'dn') x <- scale(x)
   rns <- row.names(testA)
   testA <- cbind(x,ratIn[nondeleted,3])

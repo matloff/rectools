@@ -53,12 +53,15 @@
 trainRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL) 
 {
 
-   x <- IDsToMeans(ratingsIn)
+   uinn <- getUINN(ratingsIn)
+   x <- convertX(ratingsIn,uinn)
    y <- ratingsIn[,3]
    xy <- cbind(x,y)
    names(xy) <- c(names(x),'rats')
+   rownames(x) <- rownames(ratingsIn)
 
-   result <- list(regModel=regModel,x=x, y=y)  # ultimately the return value
+   # ultimately the return value
+   result <- list(regModel=regModel,x=x, y=y,UINN=uinn)  
    class(result) <- 'regYdots'
 
    # perform the regression analysis
@@ -97,12 +100,19 @@ getUINN <- function(ratingsIn)
    items <- as.character(ratingsIn[,2])
    ratings <- ratingsIn[,3]
 
+   unqusers <- unique(users)
+   unqitems <- unique(items)
+
    # could add code to allow reusing previous computation
    Ni. <- tapply(ratings,users,length) # number of ratings per user
+   names(Ni.) <- unqusers 
    N.j <- tapply(ratings,items,length) # number of ratings per item
+   names(N.j) <- unqitems 
    usrMeans <- tapply(ratings,users,mean)
+   names(usrMeans) <- unqusers 
    itmMeans <- tapply(ratings,items,mean)
-   list(uMeans=uMeans,iMeans=iMeans,uN=Ni.,iN=N.j)
+   names(itmMeans) <- unqitems 
+   list(uMeans=usrMeans,iMeans=itmMeans,uN=Ni.,iN=N.j)
 }
 
 # converts (user,item,covs) data to (usermean,itemmean,Ni.,N.j,covs)
@@ -111,7 +121,6 @@ convertX <- function(ratingsIn,UINN)
    # handle covariates first
    if (ncol(ratingsIn) > 3) {
       covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
-      # covs <- as.data.frame(covs)
       dimnames(covs)[[2]] <- names(ratingsIn[,-(1:3)]) 
    } 
    
@@ -121,17 +130,16 @@ convertX <- function(ratingsIn,UINN)
    usrsInput <- as.character(ratingsIn[,1])
    itmsInput <- as.character(ratingsIn[,2])
    # now need to convert each input row to (usermean,itemmean,covs)
-   userMeans <- uMeans[usrsInput]
-   itemMeans <- iMeans[usrsInput]
-   uMeans <- UINN$uMeans
-   iMeans <- UINN$iMeans
-   userN <- uN[usrsInput]
-   iserN <- iN[itmsInput]
-   means <- data.frame(uMeans=uMeans,iMeans=iMeans,userN=userN,iserN=iserN)
+   userMeans <- UINN$uMeans[usrsInput]
+   itemMeans <- UINN$iMeans[itmsInput]
+   userN <- UINN$uN[usrsInput]
+   itemN <- UINN$iN[itmsInput]
+   means <- data.frame(uMeans=userMeans,iMeans=itemMeans,userN=userN,itemN=itemN)
    names(means) <- c('uMeans','iMeans','uN','iN')
    if (ncol(ratingsIn) > 3) {
       x <- cbind(means,covs)
    } else x <- means
+   rownames(x) <- rownames(ratingsIn)
    x
 
 }
