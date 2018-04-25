@@ -22,15 +22,18 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   )
   if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
-  browser()
   # which users or items are in the test set but not the training set?
   deleted <- deleteNewIDsAlt(testA,trainUsers,trainItems)  
   nondeleted <- setdiff(row.names(testA),deleted)
   testA <- testA[nondeleted,]
+  browser()
   # need to convert to Ydots form
   x <- IDsToMeans(testA)
   if (regModel == 'dn') x <- scale(x)
+  rns <- row.names(testA)
   testA <- cbind(x,ratIn[nondeleted,3])
+  row.names(testA) <- rns
+  names(testA)[ncol(testA)] <- 'rats'
   tmp <- system.time(
      pred <- predict(ryout,testA[,-ncol(testA)]) 
   )

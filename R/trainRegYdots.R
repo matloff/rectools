@@ -89,18 +89,10 @@ trainRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL)
    result
 }
 
-# converts the first two columns of ratingsIn from user/item IDs to
-# user/item ratings means; copies the covs (columns 4+, if any); adjusts
-# column names accordingly
-IDsToMeans <- function(ratingsIn) 
+# for each user, find the mean rating and number of ratings, and
+# similarly for each item
+getUINN <- function(ratingsIn) 
 {
-   # handle covariates first
-   if (ncol(ratingsIn) > 3) {
-      covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
-      # covs <- as.data.frame(covs)
-      dimnames(covs)[[2]] <- names(ratingsIn[,-(1:3)]) 
-   }
-
    users <- as.character(ratingsIn[,1])
    items <- as.character(ratingsIn[,2])
    ratings <- ratingsIn[,3]
@@ -110,22 +102,38 @@ IDsToMeans <- function(ratingsIn)
    N.j <- tapply(ratings,items,length) # number of ratings per item
    usrMeans <- tapply(ratings,users,mean)
    itmMeans <- tapply(ratings,items,mean)
+   list(uMeans=uMeans,iMeans=iMeans,uN=Ni.,iN=N.j)
+}
+
+# converts (user,item,covs) data to (usermean,itemmean,Ni.,N.j,covs)
+convertX <- function(ratingsIn,UINN) 
+{
+   # handle covariates first
+   if (ncol(ratingsIn) > 3) {
+      covs <- as.matrix(ratingsIn[,-(1:3)])  # NULL if no covariates
+      # covs <- as.data.frame(covs)
+      dimnames(covs)[[2]] <- names(ratingsIn[,-(1:3)]) 
+   } 
    
    # as explained above, usrMeans and itmMeans are indexed by character
    # versions of user/item IDs; thus again, the next 2 lines are needed 
    # due to character indexing of usrMeans and itmMeans
    usrsInput <- as.character(ratingsIn[,1])
    itmsInput <- as.character(ratingsIn[,2])
-   uMeans <- usrMeans[usrsInput]
-   iMeans <- itmMeans[itmsInput]
-   # uMeans, iMeans have length = nrow(ratingsIn); e.g. i-th element of
-   # uMeans is Yi.
-   uN <- Ni.[usrsInput]
-   iN <- N.j[itmsInput]
-   means <- data.frame(uMeans=uMeans,iMeans=iMeans,uN=uN,iN=iN)
+   # now need to convert each input row to (usermean,itemmean,covs)
+   userMeans <- uMeans[usrsInput]
+   itemMeans <- iMeans[usrsInput]
+   uMeans <- UINN$uMeans
+   iMeans <- UINN$iMeans
+   userN <- uN[usrsInput]
+   iserN <- iN[itmsInput]
+   means <- data.frame(uMeans=uMeans,iMeans=iMeans,userN=userN,iserN=iserN)
    names(means) <- c('uMeans','iMeans','uN','iN')
-   x <- cbind(means,covs)
+   if (ncol(ratingsIn) > 3) {
+      x <- cbind(means,covs)
+   } else x <- means
    x
+
 }
 
 predict.regYdots <- function(rgydObj,newdata) 
