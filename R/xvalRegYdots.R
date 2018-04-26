@@ -20,7 +20,6 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   tmp <- system.time(
      ryout <- trainRegYdots(trainSet,regModel=regModel,rmArgs=rmArgs) 
   )
-  browser()
   if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
   # delete users or items are in the test set but not the training set
