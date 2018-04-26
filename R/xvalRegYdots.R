@@ -20,6 +20,7 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   tmp <- system.time(
      ryout <- trainRegYdots(trainSet,regModel=regModel,rmArgs=rmArgs) 
   )
+  browser()
   if (printTimes) cat('training time: ',tmp,'\n')
   # test stage
   # delete users or items are in the test set but not the training set
@@ -27,7 +28,6 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   nondeleted <- setdiff(row.names(testA),deleted)
   testA <- testA[nondeleted,]
   # get (user means, item means, uN, iN) data
-  browser()
   trainUINN <- ryout$UINN
   # need to convert test data to Ydots form
   x <- convertX(testA,trainUINN)
@@ -44,22 +44,23 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   result = list(nFullData=nrowRatIn,holdout=holdout,preds=pred,
      deleted=deleted)
   # accuracy measures
-  exact <- mean(round(pred) == testA[,3],na.rm=TRUE)
-  mad <- mean(abs(pred-testA[,3]),na.rm=TRUE)
-  rms= sqrt(mean((pred-testA[,3])^2,na.rm=TRUE))
+  ycol <- ncol(testA)
+  exact <- mean(round(pred) == testA[,ycol],na.rm=TRUE)
+  mad <- mean(abs(pred-testA[,ycol]),na.rm=TRUE)
+  rms= sqrt(mean((pred-testA[,ycol])^2,na.rm=TRUE))
   # if just guess mean
-  meanRat <- mean(testA[,3],na.rm=TRUE)
+  meanRat <- mean(testA[,ycol],na.rm=TRUE)
   overallexact <- 
-     mean(round(meanRat) == testA[,3],na.rm=TRUE)
-  overallmad <- mean(abs(meanRat-testA[,3]),na.rm=TRUE)
-  overallrms <- sd(testA[,3],na.rm=TRUE)  
+     mean(round(meanRat) == testA[,ycol],na.rm=TRUE)
+  overallmad <- mean(abs(meanRat-testA[,ycol]),na.rm=TRUE)
+  overallrms <- sd(testA[,ycol],na.rm=TRUE)  
   result$acc <- list(exact=exact,mad=mad,rms=rms,
      overallexact=overallexact,
      overallmad=overallmad,
      overallrms=overallrms)
   result$idxs <- testIdxs
   result$preds <- pred
-  result$actuals <- testA[,3]
+  result$actuals <- testA[,ycol]
   result$type <- 'dn'
   class(result) <- 'xvalb'
   result

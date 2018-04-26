@@ -111,7 +111,6 @@ getUINN <- function(ratingsIn)
    usrMeans <- tapply(ratings,users,mean)
    names(usrMeans) <- unqusers 
    itmMeans <- tapply(ratings,items,mean)
-   names(itmMeans) <- unqitems 
    list(uMeans=usrMeans,iMeans=itmMeans,uN=Ni.,iN=N.j)
 }
 
