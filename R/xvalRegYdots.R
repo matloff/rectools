@@ -4,7 +4,7 @@
 #    accuracy values (MAE, RMS etc.)
 
 xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
-                   holdout=10000,printTimes=TRUE)
+                   binaryCase=FALSE,holdout=10000,printTimes=TRUE)
 {
   ratIn = ratingsIn 
  
@@ -42,26 +42,35 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   # calculate accuracy 
   result = list(nFullData=nrowRatIn,holdout=holdout,preds=pred,
      deleted=deleted)
-  # accuracy measures
   ycol <- ncol(testA)
-  exact <- mean(round(pred) == testA[,ycol],na.rm=TRUE)
-  mad <- mean(abs(pred-testA[,ycol]),na.rm=TRUE)
-  rms= sqrt(mean((pred-testA[,ycol])^2,na.rm=TRUE))
-  # if just guess mean
-  meanRat <- mean(testA[,ycol],na.rm=TRUE)
-  overallexact <- 
-     mean(round(meanRat) == testA[,ycol],na.rm=TRUE)
-  overallmad <- mean(abs(meanRat-testA[,ycol]),na.rm=TRUE)
-  overallrms <- sd(testA[,ycol],na.rm=TRUE)  
-  result$acc <- list(exact=exact,mad=mad,rms=rms,
-     overallexact=overallexact,
-     overallmad=overallmad,
-     overallrms=overallrms)
   result$idxs <- testIdxs
   result$preds <- pred
   result$actuals <- testA[,ycol]
-  result$type <- 'dn'
+  result$tregModel <- regModel
   class(result) <- 'xvalb'
+  # accuracy measures
+  if (!binaryCase) {
+     exact <- mean(round(pred) == testA[,ycol],na.rm=TRUE)
+     mad <- mean(abs(pred-testA[,ycol]),na.rm=TRUE)
+     rms= sqrt(mean((pred-testA[,ycol])^2,na.rm=TRUE))
+     # if just guess mean
+     meanRat <- mean(testA[,ycol],na.rm=TRUE)
+     overallexact <- 
+        mean(round(meanRat) == testA[,ycol],na.rm=TRUE)
+     overallmad <- mean(abs(meanRat-testA[,ycol]),na.rm=TRUE)
+     overallrms <- sd(testA[,ycol],na.rm=TRUE)  
+     result$acc <- list(exact=exact,mad=mad,rms=rms,
+        overallexact=overallexact,
+        overallmad=overallmad,
+        overallrms=overallrms)
+  } else {
+     # map pred to 0 or 1
+     pred <- pmin(pred,1)
+     pred <- pmax(pred,0)
+     pred <- round(pred)
+     exact <- mean(pred == testA[,ycol],na.rm=TRUE)
+     result$acc <- list(exact=exact,overallexact=overallexact)
+  }
   result
 }
 
