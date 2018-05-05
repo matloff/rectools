@@ -16,14 +16,16 @@
 
 #    accuracy value
 
-xvalMLE <- function(ratingsIn, holdout=10000,cls=NULL,printTimes=TRUE){
+xvalMLE <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,printTimes=TRUE){
   ratIn = ratingsIn 
   # split into random training and validation sets 
   nrowRatIn = nrow(ratIn)
   testIdxs = sample(1:nrowRatIn,holdout)
   trainingSet = ratIn[-testIdxs, ]
   tmp <- system.time(
-     MLEobj <- trainMLE(trainingSet,cls)
+     MLEobj <- 
+        trainMLE(trainingSet,binaryCase=binaryCase,cls=cls,
+           printTimes=printTimes)
   )
   if (printTimes) cat('training time: ',tmp,'\n')
   testSet = ratIn[testIdxs,]
@@ -41,22 +43,24 @@ xvalMLE <- function(ratingsIn, holdout=10000,cls=NULL,printTimes=TRUE){
   # calculate accuracy 
   result = list(ndata=nrowRatIn,holdout=holdout,numpredna=numpredna)
   # accuracy measures
-  exact <- mean(round(testSet$pred) == testSet[,3],na.rm=TRUE)
-  mad <- mean(abs(testSet$pred-testSet[,3]),na.rm=TRUE)
-  rms= sqrt(mean((testSet$pred-testSet[,3])^2,na.rm=TRUE))
-  # if just guess mean
-  meanRat <- mean(testSet[,3],na.rm=TRUE)
-  overallexact <-
-     mean(round(meanRat) == testSet[,3],na.rm=TRUE)
-  overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
-  overallrms <- sd(testSet[,3],na.rm=TRUE)
-  result$acc <- list(exact=exact,mad=mad,rms=rms,
-     overallexact=overallexact,
-     overallmad=overallmad,
-     overallrms=overallrms)
-  result$idxs <- testIdxs
-  result$preds <- testSet$pred
-  result$actuals <- testSet[,3]
+  if (!binaryCase) {
+     exact <- mean(round(testSet$pred) == testSet[,3],na.rm=TRUE)
+     mad <- mean(abs(testSet$pred-testSet[,3]),na.rm=TRUE)
+     rms= sqrt(mean((testSet$pred-testSet[,3])^2,na.rm=TRUE))
+     # if just guess mean
+     meanRat <- mean(testSet[,3],na.rm=TRUE)
+     overallexact <-
+        mean(round(meanRat) == testSet[,3],na.rm=TRUE)
+     overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
+     overallrms <- sd(testSet[,3],na.rm=TRUE)
+     result$acc <- list(exact=exact,mad=mad,rms=rms,
+        overallexact=overallexact,
+        overallmad=overallmad,
+        overallrms=overallrms)
+     result$idxs <- testIdxs
+     result$preds <- testSet$pred
+     result$actuals <- testSet[,3]
+  }
   class(result) <- 'xvalb'
   result
 }

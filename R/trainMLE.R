@@ -3,6 +3,7 @@
 
 #   ratingsIn: input data, with cols (userID,itemID,rating,
 #              covariates); data frame
+#   binaryCase: "Y" has just 2 values; glmer() will be used, not lmer()
 #   cls: an R 'parallel' cluster
 
 # in the parallel case, use 'partools' philosophy of Leave It There;
@@ -16,7 +17,7 @@
 
 #   ydotsMLEpar (if non-NULL cls): S3 class with components of class ydotsMLE
 
-trainMLE <- function(ratingsIn,cls=NULL,printTimes=TRUE) {
+trainMLE <- function(ratingsIn,binaryCase=FALSE,cls=NULL,printTimes=TRUE) {
   require(lme4)
   nms <- names(ratingsIn)
   haveCovs = ncol(ratingsIn) > 3
@@ -35,8 +36,12 @@ trainMLE <- function(ratingsIn,cls=NULL,printTimes=TRUE) {
      frml <- as.formula(frml)
   }
   if (is.null(cls)) {
-     lmerout = lmer(frml,data=ratingsIn)
+     lmerout <- 
+        if (!binaryCase) lmer(frml,data=ratingsIn) else
+        glmer(frml,data=ratingsIn,family=binomial) 
   } else {
+     if (binaryCase) 
+        stop('parallel version does not accommodate binary case yet')
      require(partools)
      clusterEvalQ(cls,require(lme4))
      tmp <- system.time(
