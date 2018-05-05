@@ -38,8 +38,8 @@ getInstEval <- function()  {
    ivl$dept <- NULL
    ivl <- cbind(ivl,dms)
    # convert from factors
-   # ivl$s <- as.character(ivl$s)
-   # ivl$d <- as.character(ivl$d)
+   ivl$s <- as.numeric(as.character(ivl$s))
+   ivl$d <- as.numeric(as.character(ivl$d))
    ivl$y <- as.numeric(ivl$y)
    ivl$service <- as.numeric(ivl$service == 1)
    ivl$studage <- as.numeric(ivl$studage)
