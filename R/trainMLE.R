@@ -55,30 +55,8 @@ trainMLE <- function(ratingsIn,binaryCase=FALSE,cls=NULL,printTimes=TRUE) {
      lmerout <- list()  # nothing to return
      class(lmerout) = 'ydotsMLEpar'
   }
+  attr(lmerout,'binaryCase') <- binaryCase
   invisible(lmerout)
-}
-
-# no longer used
-formYdots = function(ratingsIn,nms,haveCovs,lmerout) {
-  ydots = list()
-  if (!haveCovs) {
-     Y.. = fixef(lmerout)
-     ydots$Y.. = Y..
-     clm = coef(lmerout)
-     Yi. = clm[[nms[1]]][,1]
-     names(Yi.) = as.character(unique(ratingsIn[,1]))
-     ydots$Yi. = Yi.
-     Y.j = clm[[nms[2]]][,1]
-     names(Y.j) = as.character(unique(ratingsIn[,2]))
-     ydots$Y.j = Y.j
-  } else {
-     ydots$Y.. = fixef(lmerout)
-     tmp = ranef(lmerout)
-     ydots$Yi. = tmp[[2]][1][,1]
-     ydots$Y.j = tmp[[1]][1][,1]
-  }
-  class(ydots) = 'ydotsMLE'
-  ydots
 }
 
 # predict() method for the 'ydotsMLE' class
