@@ -10,11 +10,11 @@ Author@R:
     person("Melanie" "Zhang", role-c("aut"), email="mlnzhang@ucdavis.edu")
    )
 Maintainer: Norm Matloff <nsmmatloff@ucdavis.edu>
-Date: 3/19/2018
+Date: 5/4/2018
 Title: Advanced Recommender System
 Description: Toolbox for recommender systems, including novel methods,
    plotting, parallel computation, and so on. 
-Depends: partools, lme4, shiny 
+Depends: partools, lme4, shiny
 Suggests: recosystem
 LazyLoad: no
 ByteCompile: yes
