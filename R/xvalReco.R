@@ -17,7 +17,7 @@
 # value: object of class 'xvalreco', consisting mainly of various
 # prediction accuracy measures, plus the number of NA predictions
 
-xvalReco <- function(ratingsIn, holdout=10000,cls=NULL, 
+xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL, 
                rnk=10,nmf=TRUE,printTimes=TRUE)  
 {
   require(recosystem)
@@ -47,24 +47,32 @@ xvalReco <- function(ratingsIn, holdout=10000,cls=NULL,
   numpredna = sum(is.na(totalPreds))
   result = list(ndata = nrow(ratingsIn),holdout = holdout, 
                 numpredna = numpredna)
-  # accuracy measures
-  exact <- mean(round(totalPreds) == testSet[,3],na.rm=TRUE)
-  mad <- mean(abs(totalPreds-testSet[,3]),na.rm=TRUE)
-  rms= sqrt(mean((totalPreds-testSet[,3])^2,na.rm=TRUE))
-  # if just guess mean
   meanRat <- mean(testSet[,3],na.rm=TRUE)
-  overallexact <-
-     mean(round(meanRat) == testSet[,3],na.rm=TRUE)
-  overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
-  overallrms <- sd(testSet[,3],na.rm=TRUE)
-  result$acc <- list(exact=exact,mad=mad,rms=rms,
-        overallexact=overallexact,
-        overallmad=overallmad,
-        overallrms=overallrms)
-        result$idxs <- as.numeric(rownames(testSet))
-        result$preds <- totalPreds
-        result$actuals <- ratingsIn[result$idxs,3]
+  overallexact <- mean(round(meanRat) == testSet[,3],na.rm=TRUE)
+  # accuracy measures
   class(result) <- 'xvalReco'
+  result$idxs <- as.numeric(rownames(testSet))
+  result$preds <- totalPreds
+  result$actuals <- ratingsIn[result$idxs,3]
+  if (!binaryCase) {
+     exact <- mean(round(totalPreds) == testSet[,3],na.rm=TRUE)
+     mad <- mean(abs(totalPreds-testSet[,3]),na.rm=TRUE)
+     rms= sqrt(mean((totalPreds-testSet[,3])^2,na.rm=TRUE))
+     # if just guess mean
+     overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
+     overallrms <- sd(testSet[,3],na.rm=TRUE)
+     result$acc <- list(exact=exact,mad=mad,rms=rms,
+           overallexact=overallexact,
+           overallmad=overallmad,
+           overallrms=overallrms)
+  } else {
+     # map pred to 0 or 1
+     pred <- pmin(pred,1)
+     pred <- pmax(pred,0)
+     pred <- round(pred)
+     exact <- mean(pred == testSet[,3],na.rm=TRUE)
+     result$acc <- list(exact=exact,overallexact=overallexact)
+  }
   result
 }
  
