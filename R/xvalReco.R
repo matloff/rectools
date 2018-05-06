@@ -47,8 +47,6 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
   numpredna = sum(is.na(totalPreds))
   result = list(ndata = nrow(ratingsIn),holdout = holdout, 
                 numpredna = numpredna)
-  meanRat <- mean(testSet[,3],na.rm=TRUE)
-  overallexact <- mean(round(meanRat) == testSet[,3],na.rm=TRUE)
   # accuracy measures
   class(result) <- 'xvalReco'
   result$idxs <- as.numeric(rownames(testSet))
@@ -59,6 +57,8 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
      mad <- mean(abs(totalPreds-testSet[,3]),na.rm=TRUE)
      rms= sqrt(mean((totalPreds-testSet[,3])^2,na.rm=TRUE))
      # if just guess mean
+     meanRat <- mean(testSet[,3],na.rm=TRUE)
+     overallexact <- mean(round(meanRat) == testSet[,3],na.rm=TRUE)
      overallmad <- mean(abs(meanRat-testSet[,3]),na.rm=TRUE)
      overallrms <- sd(testSet[,3],na.rm=TRUE)
      result$acc <- list(exact=exact,mad=mad,rms=rms,
@@ -71,6 +71,10 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
      pred <- pmax(pred,0)
      pred <- round(pred)
      exact <- mean(pred == testSet[,3],na.rm=TRUE)
+     meanRat <- mean(testSet[,3],na.rm=TRUE)
+     overallpred <- if (meanRat >= 0.5) 1 else 0
+     overallexact <- 
+        mean(round(overallpred) == testSet[,3],na.rm=TRUE)
      result$acc <- list(exact=exact,overallexact=overallexact)
   }
   result
