@@ -31,6 +31,7 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   # need to convert test data to Ydots form
   x <- convertX(testA,trainUINN)
   if (regModel == 'dn') x <- scale(x)
+  # now add the ratings column back in, retaining row names
   rns <- row.names(testA)
   testA <- cbind(x,ratIn[nondeleted,3])
   row.names(testA) <- rns
@@ -42,6 +43,8 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   # calculate accuracy 
   result = list(nFullData=nrowRatIn,holdout=holdout,preds=pred,
      deleted=deleted)
+  # need to keep track of where the ratings column is; it will be 4 plus
+  # the number of covariates
   ycol <- ncol(testA)
   result$idxs <- testIdxs
   result$preds <- pred
@@ -68,10 +71,10 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
      pred <- pmax(pred,0)
      pred <- round(pred)
      exact <- mean(pred == testA[,ycol],na.rm=TRUE)
-     meanRat <- mean(testSet[,3],na.rm=TRUE)
+     meanRat <- mean(testA[,ycol],na.rm=TRUE)
      overallpred <- if (meanRat >= 0.5) 1 else 0
      overallexact <- 
-        mean(round(overallpred) == testSet[,3],na.rm=TRUE)
+        mean(round(overallpred) == testA[,ycol],na.rm=TRUE)
      result$acc <- list(exact=exact,overallexact=overallexact)
   }
   result

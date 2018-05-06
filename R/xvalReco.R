@@ -67,7 +67,7 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
            overallrms=overallrms)
   } else {
      # map pred to 0 or 1
-     pred <- pmin(pred,1)
+     pred <- pmin(totalPreds,1)
      pred <- pmax(pred,0)
      pred <- round(pred)
      exact <- mean(pred == testSet[,3],na.rm=TRUE)
