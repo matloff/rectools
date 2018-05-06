@@ -48,15 +48,14 @@ xvalRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL,
   result$actuals <- testA[,ycol]
   result$tregModel <- regModel
   class(result) <- 'xvalb'
+  meanRat <- mean(testA[,ycol],na.rm=TRUE)
+  overallexact <- mean(round(meanRat) == testA[,ycol],na.rm=TRUE)
   # accuracy measures
   if (!binaryCase) {
      exact <- mean(round(pred) == testA[,ycol],na.rm=TRUE)
      mad <- mean(abs(pred-testA[,ycol]),na.rm=TRUE)
      rms= sqrt(mean((pred-testA[,ycol])^2,na.rm=TRUE))
      # if just guess mean
-     meanRat <- mean(testA[,ycol],na.rm=TRUE)
-     overallexact <- 
-        mean(round(meanRat) == testA[,ycol],na.rm=TRUE)
      overallmad <- mean(abs(meanRat-testA[,ycol]),na.rm=TRUE)
      overallrms <- sd(testA[,ycol],na.rm=TRUE)  
      result$acc <- list(exact=exact,mad=mad,rms=rms,
