@@ -11,7 +11,7 @@ In recsys, we have data in which some "users" rate some "items,"
 and we wish to predict how users would rate other items.  Example
 applications are:
 
-* Moviegoers rate films (rhe "Hello World" of recsys).
+* Moviegoers rate films (the "Hello World" of recsys).
 
 * Link prediction in graphs (where will the next new edge be created?).
 
@@ -176,7 +176,7 @@ functions **trainReco()**, **predictReco()** and so on.
 
 ## Cosine model:
 
-The basic idea here is as follows.  The predict the rating user i would
+The basic idea here is as follows.  To predict the rating user i would
 give to item j, find some users who are similar to user i and who have
 rated item j, and average their ratings of that item.  The CRAN package
 **recommderlab** is one implementation of this idea, but our
