@@ -6,7 +6,7 @@
 
 \description{
 Similarity-based analysis via inner products of user ratings, and
-possibly other variables.  EXPERIMENTAL for now.
+possibly other variables. 
 }
 
 
@@ -21,8 +21,8 @@ predict.usrData(origData, newData, newItem, k, wtcovs = NULL, wtcats = NULL)
            is (UserID, ItemID, rating).}
         \item{usrCovs}{Data frame of user covariates, e.g. gender and
            age, one row per user.}
-        \item{itmCats}{Data frame of item categories, e.g. gender and
-           age, one row per user.}
+        \item{itmCats}{Data frame of item categories, e.g. movie genre,
+           one row per item}
         \item{x}{Object of class \code{usrDatum}.}
         \item{y}{Object of class \code{usrDatum}.}
         \item{wtcovs}{Weight to be placed on covariates, relative to
