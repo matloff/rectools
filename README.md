@@ -3,15 +3,15 @@
 ## Advanced Package for Recommender Systems
 
 A featured-filled package of tools from the recommender systems
-("recsys") world, plus some new methods.
+(RS) world, plus some new methods.
 
 ## Recommender Systems
 
-In recsys, we have data in which some "users" rate some "items,"
+In RS, we have data in which some "users" rate some "items,"
 and we wish to predict how users would rate other items.  Example
 applications are:
 
-* Moviegoers rate films (the "Hello World" of recsys).
+* Moviegoers rate films (the "Hello World" of RS).
 
 * Link prediction in graphs (where will the next new edge be created?).
 
@@ -20,6 +20,9 @@ applications are:
 
 * How well will sports team A do against team B?
 
+Here we will focus on *collaborative systems,* in which the user and
+item data are combined to produce predicted ratings.
+ 
 ## Package Features
 
 * Incorporate user and item covariate information, including item
@@ -36,14 +39,14 @@ applications are:
 ## Example: InstEval data
 
 Let's start with a concrete example, the **InstEval** data that is
-bundled with the **lmer4** package, which is included by **rectools**.
+bundled with the **lmer4** package, which is included with **rectools**.
 The data consist of student valuations of instructors at the famous
 Swiss university ZTH.  There are 73421 ratings submitted by 2972
 students of 1128 instructors.  Ratings are on a scale of 1 to 5.
 
-Not surprisingly, the ratings matrix is sparse; most students did not
-rate most instructors.  The goal is to "complete" the matrix, i.e.
-predict how well all the students would like all the instructors.
+Not surprisingly, the ratings matrix is mostly unknown; most students
+did not rate most instructors.  The goal is to "complete" the matrix,
+i.e.  predict how well all the students would like all the instructors.
 
 For convenience, **rectools** includes a function that loads this data,
 processes it (e.g. creating dummy variables for the school's
@@ -51,25 +54,28 @@ departments), and assigning the result to **ivl**:
 
 ``` R
 > getInstEval()
-> ivl[28888,]
+> ivl[28888,]  # look at some example record
          s   d y studage lectage service dpt15 dpt5 dpt10
 28888 1178 220 5       3       5       0     0    0     0
       dpt12 dpt6 dpt7 dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
 28888     1    0    0    0    0    0     0    0    0     0
 ```
 
-The data frame **ivl** follows the standard input format in the recsys
+The data frame **ivl** follows the standard input format in the RS
 world: user ID, item ID, rating, covariates.
 
 In that record 28888, for instance, Student 1178 gave a rating of 5 to
 Instructor 220.  The class was not a service class (i.e. not for
-nonmajors) in Department 12.  The student was in his/her third year
-(**studage** = 3), and had taken the course 5 semesters earlier.
+nonmajors) in Department 12 (**dpt15** etc. are dummy variables.) The
+student was in his/her third year (**studage** = 3), and had taken the
+course 5 semesters earlier.
+
+(For more information on the data, type '?InstEval')
 
 ### Random effects ANOVA model:
 
 A simple statistical random effects latent factor model, often called a
-*baseline* model in the recsys literature, is
+*baseline* model in the RS literature, is
 
 E(Y) =  &mu; + &alpha;<sub>i</sub> + &beta;<sub>j</sub>
 
@@ -113,24 +119,18 @@ the case of binary Y, with the logistic model.
 Covariates are allowed for both the MM and MLE versions, as well as for
 other methods in **rectools**.  Let's try predicting student 1128 and
 instructor 99 again, this time using the service and department
-information.  
+information, which are covariates of the items here.  
 
 ``` R
-> mmout1 <- trainMM(ivl[,-(4:5)],userCovsStartCol=NULL,itemCovsStartCol=4)
+> mmout1 <- trainMM(ivl)
 ```
 
-Start building the test set for the prediction:
+Start building the a set for the prediction.  We'll use student 1128 and
+instructor 99 again, but now that we are using covariates, we'll need to
+determine what they are for this student and this instructor.
 
-``` R
-> testset <- ivl[28888,-(3:5)]
-> testset
-         s   d service dpt15 dpt5 dpt10 dpt12 dpt6 dpt7
-28888 1178 220       0     0    0     0     1    0    0
-      dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
-28888    0    0    0     0    0    0     0
-```
-
-Now, which department does this instructor teach in?
+We already saw that **studage**, the sole covariate for students, is 3
+for student 1128.  Let's find a record involving instructor 99.
 
 ``` R
 > which(ivl$d == 99)
@@ -143,17 +143,29 @@ Now, which department does this instructor teach in?
 3015     0    0    0    0    0    0     0    1    0     0
 ```
 
-Ah, department 1.  Now go ahead with the prediction:
+Ah, it's department 1, a non-service unit, and the instructor has "age"
+4.  So, let's assemble an example test set.
 
 ``` R
-> mmout1 <- trainMM(ivl[,-(4:5)],userCovsStartCol=NULL,itemCovsStartCol=4) 
+> testset <- ivl[28888,-3]  # pretend we don't know y
 > testset
-         s  d service dpt15 dpt5 dpt10 dpt12 dpt6 dpt7 dpt4
-28888 1128 99       0     0    0     0     0    0    0    0
-      dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
-28888    0    0     0    1    0     0
+         s   d studage lectage service dpt15 dpt5 dpt10
+28888 1178 220       3       5       0     0    0     0
+      dpt12 dpt6 dpt7 dpt4 dpt8 dpt9 dpt14 dpt1 dpt3 dpt11
+28888     1    0    0    0    0    0     0    0    0     0
+> testset$d <- 99
+> testset$lectage <- 4
+> testset$dpt12 <- 0
+> testset$dpt1 <- 1
+
+```
+
+Now go ahead with the prediction:
+
+``` R
+> mmout1 <- trainMM(ivl) 
 > predict(mmout1,testset)
-[1] 3.350096
+[1] 3.498892
 ```
 
 
@@ -164,11 +176,12 @@ Let A denote the matrix of ratings, with Y<sub>ij</sub> in row i, column
 j.  Most of A is unknown, and we wish to predict the unknown values.
 Nonnegative Matrix Factorization (NMF) does this as follows:
 
-We find nonnegative matrices W and H, each of rank k, such that A is
-approximately equal to the product WH.  Here k is a user-defined tuning
-parameter, typically much smaller than the number of rows and columns of
-A.  It is kept small to avoid overfitting but large enough to capture
-most of the structure of the data.  Default value is k = 10.
+We find fully known nonnegative matrices W and H, each of rank k, such
+that A is approximately equal to the product WH.  Here k is a
+user-defined tuning parameter, typically much smaller than the number of
+rows and columns of A.  It is kept small to avoid overfitting but large
+enough to capture most of the structure of the data.  Default value is k
+= 10.
 
 Here we piggyback on the R package **recosystem**, adding convenient
 wrappers and adding a parallel computation capability.  See the
@@ -206,18 +219,25 @@ model, and to identify a possible need to consider separate analyses for
 subpopulations.
 
 
-# REFERENCES
+# FURTHER INFORMATION ON RECOMMENDER SYSTEMS
+
+C. Aggarwal, *Recommender Systems: the Textbook*, Springer, 2016.
 
 K. Gao and A. Owen, *Efficient Moment Calculations for Variance
 Components in Large Unbalanced Crossed Random Effects Models*, 2016.
 
 M. Hahsler, **recommderlab**, CRAN vignette.
 
+D. Jannach *et al*, *Recommender Systems: an Introduction*, Cambridge
+University Press, 2010.
+
 Y. Koren et al, Matrix Factorization Techniques for Recommender 
 Systems, *IEEE Computer*, 2009.
 
 N. Matloff, [Collaborative Filtering in Recommender Systems: 
 a Short Introduction](http://heather.cs.ucdavis.edu/RSTutorial.pdf), 2016. 
+
+N. Matloff, [A Tour of Recommender Systems](http://heather.cs.ucdavis.edu/~matloff/189G/PLN/recsysCourse/LaTeX/RSbook.pdf), 2018 (in progress). 
 
 
 P. Perry, *Fast Moment-Based Estimation for Hierarchical Models*, 2015.
