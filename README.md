@@ -187,7 +187,7 @@ Here we piggyback on the R package **recosystem**, adding convenient
 wrappers and adding a parallel computation capability.  See the
 functions **trainReco()**, **predictReco()** and so on.
 
-## Cosine model:
+## Nearest-neighbors model:
 
 The basic idea here is as follows.  To predict the rating user i would
 give to item j, find some users who are similar to user i and who have
@@ -200,8 +200,31 @@ One such enhancement is to do item category matching, an example of
 categories being movie genres.  For each user, our code calculates the
 proportion of items in each category rated by this user, and
 incorporates this into the calculation of similarity between any pair of
-users.  See the functions **cosDist()**, **formUserData()** and
+users.  The functions used are **cosDist()**, **formUserData()** and
 **predictUsrData()**.
+
+``` r
+> ud <- formUserData(ivl[,1:3]) 
+> u28 <- ud[[28]]
+> u28$itms
+[1]   17   65  269  750 1002 1589 2097
+> predict(ud,u28,122,10)  # would User 28 like Item 122?
+[1] 4.3
+```
+
+Here's what happened above.  First, the R list <strong>ud</strong> will have
+one element per user, with components <strong>itms</strong> and
+<strong>ratings</strong>, showing what items this user has rated and
+what ratings he/she gave.  
+
+The call to <strong>predict()</strong> is a little more complicated.  It
+is what is called a <i>generic;a </i> function in R.  When R sees this
+call, it will ask, "What is the class of <strong>ud</strong>?"  Upon
+learning that <strong>ud</strong> is an object of class
+<strong>"usrData"</strong>, R then <i>dispatched</i> the call to
+the function <strong>predict.usrData()</strong>.  That function then
+found the 10 closest users in our dataset who had rated item 122, and
+averaged their ratings for that item, yielding 4.3
 
 ## Cross validation:
 
