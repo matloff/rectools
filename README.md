@@ -169,25 +169,7 @@ Now go ahead with the prediction:
 ```
 
 
-
-## Matrix factorization model:
-
-Let A denote the matrix of ratings, with Y<sub>ij</sub> in row i, column
-j.  Most of A is unknown, and we wish to predict the unknown values.
-Nonnegative Matrix Factorization (NMF) does this as follows:
-
-We find fully known nonnegative matrices W and H, each of rank k, such
-that A is approximately equal to the product WH.  Here k is a
-user-defined tuning parameter, typically much smaller than the number of
-rows and columns of A.  It is kept small to avoid overfitting but large
-enough to capture most of the structure of the data.  Default value is k
-= 10.
-
-Here we piggyback on the R package **recosystem**, adding convenient
-wrappers and adding a parallel computation capability.  See the
-functions **trainReco()**, **predictReco()** and so on.
-
-## Nearest-neighbors model:
+## Nearest-neighbors/similarity model:
 
 The basic idea here is as follows.  To predict the rating user i would
 give to item j, find some users who are similar to user i and who have
@@ -212,19 +194,60 @@ users.  The functions used are **cosDist()**, **formUserData()** and
 [1] 4.3
 ```
 
-Here's what happened above.  First, the R list <strong>ud</strong> will have
-one element per user, with components <strong>itms</strong> and
-<strong>ratings</strong>, showing what items this user has rated and
+Here's what happened above.  First, the R list **ud** will have
+one element per user, with components **itms** and
+**ratings** showing what items this user has rated and
 what ratings he/she gave.  
 
-The call to <strong>predict()</strong> is a little more complicated.  It
-is what is called a <i>generic;a </i> function in R.  When R sees this
-call, it will ask, "What is the class of <strong>ud</strong>?"  Upon
-learning that <strong>ud</strong> is an object of class
-<strong>"usrData"</strong>, R then <i>dispatched</i> the call to
-the function <strong>predict.usrData()</strong>.  That function then
-found the 10 closest users in our dataset who had rated item 122, and
-averaged their ratings for that item, yielding 4.3
+The call to **predict()** is a little more complicated.  It is what is
+called a *generic* function in R.  When R sees this call, it will ask,
+"What is the class of **ud**?"  Upon learning that **ud** is an object
+of class **usrData**.  R then *dispatched* the call to the method
+**predict.usrData()** function then found the 10 closest users in our
+dataset who had rated item 122, and averaged their ratings for that
+item, yielding 4.3.
+
+## Matrix factorization model:
+
+Let A denote the matrix of ratings, with Y<sub>ij</sub> in row i, column
+j.  Most of A is unknown, and we wish to predict the unknown values.
+Nonnegative Matrix Factorization (NMF) does this as follows:
+
+We find fully known nonnegative matrices W and H, each of rank k, such
+that A is approximately equal to the product WH.  Here k is a
+user-defined tuning parameter, typically much smaller than the number of
+rows and columns of A.  It is kept small to avoid overfitting but large
+enough to capture most of the structure of the data.  Default value is k
+= 10.
+
+Here we piggyback on the R package **recosystem**, adding convenient
+wrappers and adding a parallel computation capability.  The
+functions involved are **trainReco()**, **predictReco()** and so on.
+
+Once again, let's try this on the InstEval data:
+
+``` r
+
+> tr <- trainReco(ivl[,1:3])
+> names(tr)
+[1] "P" "Q"
+> dim(tr$P)  # W
+[1] 2972   10
+> dim(tr$Q)  # H'
+[1] 2160   10
+> class(tr)
+[1] "RecoS3"
+> testSet <- data.frame(s=28,d=122)
+> predict(tr,testSet)
+[1] 5.310598
+
+
+```
+
+Here **trainReco()** did the factorization, returning an object of class
+**"RecoS3"** whose components are W and the transpose of H.  The method 
+**predict.RecoS3()** was called.
+
 
 ## Cross validation:
 
