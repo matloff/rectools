@@ -44,7 +44,7 @@ The latter function returns several key components, including:
    an item, and each column is a latent factor.  
    }
 
-The product of these two matricies consists of the predicted ratings of
+The product PQ' of these two matricies consists of the predicted ratings of
 all users on all items.
 
 The functions \code{predict.RecoS3} and are methods for the generic
