@@ -43,11 +43,14 @@
 }
 
 \examples{
-     ivl <- InstEval 
+     ivl <- InstEval  # getInstEval() NOT called
      ivl$s <- as.numeric(ivl$s) 
      ivl$d <- as.numeric(ivl$d) 
      ivl <- ivl[,c(1,2,7)]
      usrdata <- formUserData(ivl[,1:3]) 
      # predict the rating user 3 would give item 8
      predict(usrdata,usrdata[[3]],8,10)  # 2.6
+     # user not in database
+     nu <- list(userID='88888',itms=c(22,99),ratings=c(5,1))
+     predict(usrdata,nu,8,10)  # 3.2
 }
