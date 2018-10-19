@@ -48,7 +48,8 @@
      ivl$d <- as.numeric(ivl$d) 
      ivl <- ivl[,c(1,2,7)]
      usrdata <- formUserData(ivl[,1:3]) 
-     # predict the rating user 3 would give item 8
+     # predict the rating user 3 would give item 8; warning, in general
+     # element [[3]] may be have user 3; need code to find user 3
      predict(usrdata,usrdata[[3]],8,10)  # 2.6
      # user not in database
      nu <- list(userID='88888',itms=c(22,99),ratings=c(5,1))
