@@ -19,7 +19,7 @@
   \item{newItem:}{ID of the item rating to be predicted for the user
   specified in \code{newData}.}
 
-  \item{k:}{number of nearest neighbors.}
+  \item{k:}{vector of numbers of nearest neighbors.}
 
   \item{wtcovs:}{weight to put on covariates; NULL if no covs.}
 

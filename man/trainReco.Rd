@@ -54,13 +54,14 @@ function \code{predict}.
 
 \examples{
    getInstEval()
+   # note: instructor IDs not consecutive
    ivl3 <- ivl[,1:3]
    set.seed(9999)
    trn <- trainReco(ivl3)
    onerec <- ivl3[1,]  # form dummy 1-rec data frame
    # how would student 788 would like lecturer 28?
    onerec$s <- 788  
-   onerec$d <- 28  
+   onerec$d <- 12  
    onerec <- onerec[,-3]
    predict(trn,onerec)  # 1.95
 }
