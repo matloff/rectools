@@ -61,13 +61,14 @@ predict.RecoS3 <- function(recoObj,testSet)
 {
    p <- recoObj$P  # transpose of classic W
    q <- recoObj$Q  # classic H
-   testSet$pred <- vector(length=nrow(testSet))
+   pred <- vector(length=nrow(testSet))
    hasCovs <- attr(recoObj,'hasCovs')
    if (hasCovs) {
       covCoefs <- attr(recoObj,'covCoefs')
       minResid <- attr(recoObj,'minResid')
    }
    
+   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:3)])
    for(i in 1:nrow(testSet)){
       j <- testSet[i,1]
       k <- testSet[i,2]
@@ -75,13 +76,14 @@ predict.RecoS3 <- function(recoObj,testSet)
       ## if(j < nrow(p) || k < nrow(q)) 
       if(j <= nrow(p) && k <= nrow(q)) {
          tmp <- 0
-         if (hasCovs) 
-            tmp <- covCoefs %*% c(1,testSet[i,-(1:3)]) - minResid
-         testSet$pred[i] <- p[j,] %*% q[k,] + tmp
+         if (hasCovs) {
+            tmp <- c(1,testCovs[i,]) %*% covCoefs + minResid
+         }
+         pred[i] <- p[j,] %*% q[k,] + tmp
       } else
-         testSet$pred[i] <- NA
+         pred[i] <- NA
    }
-   testSet$pred
+   pred
 }
 
 ##########################  trainRecoPar  ***************************
