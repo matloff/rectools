@@ -1,0 +1,5 @@
+
+From lme4.  The latter depends on .so libraries that some users may
+lack, so it is only Suggested.
+
+
