@@ -28,7 +28,7 @@ package, including adding a parallel computation capability.
         \item{RecoS3parObj}{Object of class \code{'RecoS3par'}, output of
            \code{trainRecoPar}.}
         \item{testSet}{Data to be predicted, having within-row format
-           (UserID, ItemID).}
+           (UserID, ItemID, covariates if any).}
 }
 
 \details{

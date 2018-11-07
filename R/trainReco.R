@@ -54,8 +54,9 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
 # note:  recosystem also has a predict() function, but it is not used
 
 # recoObj is output of trainReco(), an object of class 'RecoS3; testSet
-# is a 3-column raw data matrix as with ratingsIn above; returns the
-# predicted values
+# is a raw data matrix as with ratingsIn above; columns include
+# covariates if any, but not ratings (which are to be predicted);
+# returns the predicted values
 
 predict.RecoS3 <- function(recoObj,testSet) 
 {
@@ -68,7 +69,7 @@ predict.RecoS3 <- function(recoObj,testSet)
       minResid <- attr(recoObj,'minResid')
    }
    
-   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:3)])
+   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:2)])
    for(i in 1:nrow(testSet)){
       j <- testSet[i,1]
       k <- testSet[i,2]
