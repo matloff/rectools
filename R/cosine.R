@@ -51,7 +51,7 @@ predict.usrData <- function(origData,newData,newItem,
 {
    # check that newData has the covs and cats if and only if the
    # training data did
-   traincovs <- !is.null(origData$usrCovs)
+   traincovs <- !is.null(origData[[1]]$cvrs)
    newcovs <- !is.null(newData$cvrs)
    if (!(traincovs + newcovs %in% c(0,2)))
       stop('mismatch in having/not having covars, orig and new data')
