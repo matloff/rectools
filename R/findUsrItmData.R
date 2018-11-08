@@ -74,9 +74,11 @@ formUserData <- function(ratingsIn,usrCovs=NULL,itmCats=NULL,fileOut='') {
       retval[[userID]]$ratings <- ratingsIn[whichrows,3]
       names(retval[[userID]]$ratings) <- as.character(retval[[userID]]$itms) 
 
-      if (!is.null(usrCovs))
+      if (!is.null(usrCovs)) {
          # change from data frame row to numeric vector
-         retval[[userID]]$cvrs <- as.numeric(usrCovs[userID,])
+         numUserID <- as.numeric(userID)
+         retval[[userID]]$cvrs <- as.numeric(usrCovs[numUserID,])
+      }
       if (!is.null(itmCats)) {
          # form tmp, a boolean vector indicating which items were or
          # were not rated by this user

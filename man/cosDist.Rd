@@ -20,13 +20,13 @@ predict.usrData(origData, newData, newItem, k, wtcovs = NULL, wtcats = NULL)
 	\item{ratingsIn}{Input data frame, training set. Within-row format 
            is (UserID, ItemID, rating).}
         \item{usrCovs}{Data frame of user covariates, e.g. gender and
-           age, one row per user.}
+           age, one row per user.  User i must be in row i.}
         \item{itmCats}{Data frame of item categories, e.g. movie genre,
            one row per item}
         \item{x}{Object of class \code{usrDatum}.}
         \item{y}{Object of class \code{usrDatum}.}
         \item{wtcovs}{Weight to be placed on covariates, relative to
-           ratings variables.}
+           ratings variables.  Must be positive if have covariates.}
         \item{wtcats}{Weight to be placed on categories, relative to
            ratings variables.}
         \item{origData}{Object of class \code{'usrData'}, serving as the
