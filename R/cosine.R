@@ -140,8 +140,8 @@ cosDist <- function(x,y,wtcovs=NULL,wtcats=NULL)
       yvec <- c(yvec,wtcovs*y$cvrs)
    }
    if (!is.null(wtcats)) {
-      xvec <- c(xvec,wtcovs*x$cats)
-      yvec <- c(yvec,wtcovs*y$cats)
+      xvec <- c(xvec,wtcats*x$cats)
+      yvec <- c(yvec,wtcats*y$cats)
    }
 
    xvec %*% yvec / (l2a(xvec) * l2a(yvec))
