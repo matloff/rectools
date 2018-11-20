@@ -55,7 +55,7 @@ predict.usrData <- function(origData,newData,newItem,
    newcovs <- !is.null(newData$cvrs)
    if (!(traincovs + newcovs %in% c(0,2)))
       stop('mismatch in having/not having covars, orig and new data')
-   traincats <- !is.null(origData$usrCats)
+   traincats <- !is.null(origData$cats)
    newcats <- !is.null(newData$cats)
    if (!(traincats + newcats %in% c(0,2)))
       stop('mismatch in having/not having cats, orig and new data')
