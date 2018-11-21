@@ -33,21 +33,13 @@ package, including adding a parallel computation capability.
 
 \details{
 The training functions call \code{r$train} on the input data.
-The latter function returns several key components, including:
+The latter function returns several key components, including
+the matrices P and Q.
 
-   \itemize{
-   
-   \item P: This is the user score matrix, in which a row 
-   represents a user, and each column is a latent factor. 
-   
-   \item Q: This is the item score matrix, in which a row represents 
-   an item, and each column is a latent factor.  
-   }
-
-The product PQ' of these two matricies consists of the predicted ratings of
+The product PQ' of these two matrices consists of the predicted ratings of
 all users on all items.
 
-The functions \code{predict.RecoS3} and are methods for the generic
+The function \code{predict.RecoS3} is a method for the generic
 function \code{predict}.
 	
 }
@@ -63,7 +55,7 @@ function \code{predict}.
    onerec$s <- 788  
    onerec$d <- 12  
    onerec <- onerec[,-3]
-   predict(trn,onerec)  # 1.95
+   predict(trn,onerec)  # 2.46
 }
 
 \author{
