@@ -3,8 +3,11 @@
 # 'recosytem' package, including some parallel operations
 
 # 'recosytem' approximates the (mostly unknown) user-ratings matrix A as
-# the product P'Q, with P and Q having specified rank 'rnk'; a number of
+# the product PQ', with P and Q having specified rank 'rnk'; a number of
 # other tuning parameters are available besides rank, but not used here
+
+# inputs with nonconsecutive IDs are allowed; they are converted
+# internally to consecutive numbers starting with 1
 
 #############################  trainReco  ***************************
 
@@ -49,8 +52,8 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
    result <- r$output(out_memory(),out_memory())
    attr(result,'hasCovs') <- hasCovs
    if (hasCovs) {
-      attr(result,'covCoefs') <- coef(lmout)
-      attr(result,'minResid') <- minResid
+      result$covCoefs <- coef(lmout)
+      result$minResid <- minResid
    }
 
    result$usrLookup <- usrLookup
@@ -76,10 +79,10 @@ predict.RecoS3 <- function(recoObj,testSet)
    p <- recoObj$P  # classic W
    q <- recoObj$Q  # transpose of classic H
    pred <- vector(length=nrow(testSet))
-   hasCovs <- attr(recoObj,'hasCovs')
+   hasCovs <- ncol(testSet) > 2
    if (hasCovs) {
-      covCoefs <- attr(recoObj,'covCoefs')
-      minResid <- attr(recoObj,'minResid')
+      covCoefs <- recoObj$covCoefs
+      minResid <- recoObj$minResid
    }
    
    if (hasCovs) testCovs <- as.matrix(testSet[,-(1:2)])
