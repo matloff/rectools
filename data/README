@@ -1,5 +1,8 @@
 
 From lme4.  The latter depends on .so libraries that some users may
-lack, so it is only Suggested.
+lack, so it is only Suggested.  Thus we are mirroring this dataset here
+to ensure that all rectools users can access it.  This is consistent
+with lme4's license.
+
 
 
