@@ -20,9 +20,23 @@
 
 # It seems intuitive that Yi. and Y.j would be reasonable candidates for
 # predictors, regardless of whether the above model is correct.  (Note
-# that the model for the regression function amy still be correct; the
+# that the model for the regression function may still be correct; the
 # regression function of Y on alpha and beta does exist, where mu+alpha
-# and mu+beta are the limits of Yi. and Y.j
+# and mu+beta are the limits of Yi. and Y.j as the sample size grows.)
+
+# Furthermore, the numbers Ni. and N.j of ratings per user and per item
+# may be informative too.
+
+# Thus the function convertX() converts the input data ratingIns
+# to a new data frame, whose row k is:
+
+# alpha.hat_U(k)
+# beta.hat)I(k)
+# Ni._U(k)
+# N.j_I(k)
+# covars_k from ratingsIn[k,]
+
+# where U(k) and I(k) are ratingsIn[k,1] and ratingsIn[k,2]
 
 # Any regression model can be used, e.g. linear, logistic, random
 # forests, neural networks, etc.
@@ -93,28 +107,24 @@ trainRegYdots <- function(ratingsIn,regModel='lm',rmArgs=NULL)
 }
 
 # for each user, find the mean rating and number of ratings, and
-# similarly for each item
+# similarly for each item; users and items indexed by the character
+# forms of their IDs
+
 getUINN <- function(ratingsIn) 
 {
    users <- as.character(ratingsIn[,1])
    items <- as.character(ratingsIn[,2])
    ratings <- ratingsIn[,3]
 
-   unqusers <- unique(users)
-   unqitems <- unique(items)
-
-   # could add code to allow reusing previous computation
    Ni. <- tapply(ratings,users,length) # number of ratings per user
-   names(Ni.) <- unqusers 
    N.j <- tapply(ratings,items,length) # number of ratings per item
-   names(N.j) <- unqitems 
    usrMeans <- tapply(ratings,users,mean)
-   names(usrMeans) <- unqusers 
    itmMeans <- tapply(ratings,items,mean)
    list(uMeans=usrMeans,iMeans=itmMeans,uN=Ni.,iN=N.j)
 }
 
 # converts (user,item,covs) data to (usermean,itemmean,Ni.,N.j,covs)
+
 convertX <- function(ratingsIn,UINN) 
 {
    # handle covariates first
@@ -133,7 +143,10 @@ convertX <- function(ratingsIn,UINN)
    itemMeans <- UINN$iMeans[itmsInput]
    userN <- UINN$uN[usrsInput]
    itemN <- UINN$iN[itmsInput]
-   means <- data.frame(uMeans=userMeans,iMeans=itemMeans,userN=userN,itemN=itemN)
+
+   # start forming the converted data
+   means <- 
+      data.frame(uMeans=userMeans,iMeans=itemMeans,userN=userN,itemN=itemN)
    names(means) <- c('uMeans','iMeans','uN','iN')
    if (ncol(ratingsIn) > 3) {
       x <- cbind(means,covs)
