@@ -90,12 +90,12 @@ RStoReg <- function(ratingsIn,useNij=FALSE)
    # start forming the converted data
    means <- 
       data.frame(uMeans=userMeans,iMeans=itemMeans)
-   names(means) <- c('uMeans','iMeans')
+   # names(means) <- c('uMeans','iMeans')
    if (useNij) {
       userN <- UINN$uN[usrsInput]
       itemN <- UINN$iN[itmsInput]
       means <- cbind(means,userN,itemN)
-      names(means)[4:5] <- c('uN','iN')
+      names(means)[3:4] <- c('uN','iN')
    }
    if (ncol(ratingsIn) > 3) {
       xy <- cbind(means,covs)
@@ -106,11 +106,3 @@ RStoReg <- function(ratingsIn,useNij=FALSE)
    xy
 }
 
-predict.regYdots <- function(rgydObj,newdata) 
-{
-   if (rgydObj$regModel != 'dn') {
-      predict(rgydObj$regOut,newdata)
-   } else {
-      nn.predict(rgydObj$regOut,newdata)
-   }
-}
