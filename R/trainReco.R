@@ -3,11 +3,10 @@
 # 'recosytem' package, including some parallel operations
 
 # 'recosytem' approximates the (mostly unknown) user-ratings matrix A as
-# the product PQ', with P and Q having specified rank 'rnk'; a number of
+# the product P'Q, with P and Q having specified rank 'rnk'; a number of
 # other tuning parameters are available besides rank, but not used here
 
-# inputs with nonconsecutive IDs are allowed; they are converted
-# internally to consecutive numbers starting with 1
+# it is assumed that user and item IDs are contiguous, starting at 1
 
 #############################  trainReco  ***************************
 
@@ -24,20 +23,15 @@
 #    note:  covariates, if any, must be user-specific and/or
 #           item-specific, NOT involving interaction between user and item
 
-trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
+trainReco <- function(ratingsIn,rnk=10,nmf=FALSE,biasAdjust=F)
 {
    require(recosystem)
-
-   # make lookup tables, in case user and item IDs are not consecutive
-   origUsrIDs <- as.character(unique(ratingsIn[,1]))
-   origItmIDs <- as.character(unique(ratingsIn[,2]))
-   usrLookup <- 1:length(origUsrIDs)
-   names(usrLookup) <- origUsrIDs
-   itmLookup <- 1:length(origItmIDs)
-   names(itmLookup) <- origItmIDs
-   ratingsIn[,1] <- usrLookup[as.character(ratingsIn[,1])]
-   ratingsIn[,2] <- itmLookup[as.character(ratingsIn[,2])]
-
+   if (biasAdjust) {
+      uMeans <- tapply(ratingsIn[,3],ratingsIn[,1],mean)
+      uMeans <- uMeans - mean(ratingsIn[,3])
+      biases <- uMeans[as.character(ratingsIn[,1])]
+      ratingsIn[,3] <- ratingsIn[,3] - biases
+   }
    hasCovs <- (ncol(ratingsIn) > 3)
    if (hasCovs) {
       covs <- as.matrix(ratingsIn[,-(1:3)])
@@ -52,13 +46,9 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
    result <- r$output(out_memory(),out_memory())
    attr(result,'hasCovs') <- hasCovs
    if (hasCovs) {
-      result$covCoefs <- coef(lmout)
-      result$minResid <- minResid
+      attr(result,'covCoefs') <- coef(lmout)
+      attr(result,'minResid') <- minResid
    }
-
-   result$usrLookup <- usrLookup
-   result$itmLookup <- itmLookup
-
    class(result) <- 'RecoS3'
    result
 }
@@ -70,45 +60,34 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE)
 # note:  recosystem also has a predict() function, but it is not used
 
 # recoObj is output of trainReco(), an object of class 'RecoS3; testSet
-# is a raw data matrix as with ratingsIn above; columns include
-# covariates if any, but not ratings (which are to be predicted);
-# returns the predicted values
+# is a 3-column raw data matrix as with ratingsIn above; returns the
+# predicted values
 
 predict.RecoS3 <- function(recoObj,testSet) 
 {
-   p <- recoObj$P  # classic W
-   q <- recoObj$Q  # transpose of classic H
+   p <- recoObj$P  # transpose of classic W
+   q <- recoObj$Q  # classic H
    pred <- vector(length=nrow(testSet))
-   hasCovs <- ncol(testSet) > 2
+   hasCovs <- attr(recoObj,'hasCovs')
    if (hasCovs) {
-      covCoefs <- recoObj$covCoefs
-      minResid <- recoObj$minResid
+      covCoefs <- attr(recoObj,'covCoefs')
+      minResid <- attr(recoObj,'minResid')
    }
    
-   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:2)])
-
-   # change to consecutive IDs
-   ul <- recoObj$usrLookup
-   il <- recoObj$itmLookup
-   saveTestSet <- testSet
-   testSet[,1] <- as.integer(ul[as.character(testSet[,1])])
-   testSet[,2] <- as.integer(il[as.character(testSet[,2])])
-
+   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:3)])
    for(i in 1:nrow(testSet)){
       j <- testSet[i,1]
       k <- testSet[i,2]
       # is user or item not in the dataset?; if so, NA
-      if (is.na(j) || is.na(k)) {
-         pred[i] <- NA
-      } else {
-      ## if(j <= nrow(p) && k <= nrow(q)) {
+      ## if(j < nrow(p) || k < nrow(q)) 
+      if(j <= nrow(p) && k <= nrow(q)) {
          tmp <- 0
          if (hasCovs) {
             tmp <- c(1,testCovs[i,]) %*% covCoefs + minResid
          }
          pred[i] <- p[j,] %*% q[k,] + tmp
-      } ## else
-         ## pred[i] <- NA
+      } else
+         pred[i] <- NA
    }
    pred
 }

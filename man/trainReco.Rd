@@ -12,7 +12,7 @@ package, including adding a parallel computation capability.
 }
 
 \usage{
-	trainReco(ratingsIn,rnk=10,nmf=FALSE)
+	trainReco(ratingsIn,rnk=10,nmf=FALSE,biasAdjust=FALSE)
 	predict.RecoS3(recoObj,testSet)
 	trainRecoPar(ratingsIn,rnk=10,nmf=FALSE,cls,pqName='PQ')
 	predict.RecoS3par(RecoS3parObj,testSet,cls)
@@ -22,7 +22,9 @@ package, including adding a parallel computation capability.
 	\item{ratingsIn}{Input data frame, training set. Within-row format 
            is (UserID, ItemID, rating).}
 	\item{rnk}{Desired rank for the matrix factors.}
-	\item{nmf}{If true, use NMF, otherwise SVD.}
+	\item{nmf}{If TRUE, use NMF, otherwise SVD.}
+        \item{biasAdjust}{If TRUE, subtract from the input ratings the
+           user "biases," which are the "hat(alpha_i)" in trainMM().} 
         \item{recoObj}{Object of class \code{'RecoS3'}, output of
            \code{trainReco}.}
         \item{RecoS3parObj}{Object of class \code{'RecoS3par'}, output of
