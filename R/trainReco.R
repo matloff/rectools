@@ -25,6 +25,17 @@
 
 trainReco <- function(ratingsIn,rnk=10,nmf=FALSE,biasAdjust=F)
 {
+
+   # make lookup tables, in case user and item IDs are not consecutive
+   origUsrIDs <- as.character(unique(ratingsIn[,1]))
+   origItmIDs <- as.character(unique(ratingsIn[,2]))
+   usrLookup <- 1:length(origUsrIDs)
+   names(usrLookup) <- origUsrIDs
+   itmLookup <- 1:length(origItmIDs)
+   names(itmLookup) <- origItmIDs
+   ratingsIn[,1] <- usrLookup[as.character(ratingsIn[,1])]
+   ratingsIn[,2] <- itmLookup[as.character(ratingsIn[,2])]
+
    require(recosystem)
    if (biasAdjust) {
       uMeans <- tapply(ratingsIn[,3],ratingsIn[,1],mean)
@@ -44,11 +55,15 @@ trainReco <- function(ratingsIn,rnk=10,nmf=FALSE,biasAdjust=F)
       data_memory(ratingsIn[,1],ratingsIn[,2],ratingsIn[,3],index1=TRUE)
    r$train(train_set,opts = list(dim=rnk,nmf=nmf)) 
    result <- r$output(out_memory(),out_memory())
-   attr(result,'hasCovs') <- hasCovs
    if (hasCovs) {
-      attr(result,'covCoefs') <- coef(lmout)
-      attr(result,'minResid') <- minResid
+      result$covCoefs <- coef(lmout)
+      result$minResid <- minResid
    }
+
+   # record lookup tables for predict()
+   result$usrLookup <- usrLookup
+   result$itmLookup <- itmLookup
+
    class(result) <- 'RecoS3'
    result
 }
@@ -68,26 +83,34 @@ predict.RecoS3 <- function(recoObj,testSet)
    p <- recoObj$P  # transpose of classic W
    q <- recoObj$Q  # classic H
    pred <- vector(length=nrow(testSet))
-   hasCovs <- attr(recoObj,'hasCovs')
+
+   hasCovs <- (ncol(testSet) > 2)
    if (hasCovs) {
-      covCoefs <- attr(recoObj,'covCoefs')
-      minResid <- attr(recoObj,'minResid')
+      covCoefs <- recoObj$covCoefs
+      minResid <- recoObj$minResid
    }
-   
-   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:3)])
+ 
+   # switch to consecutive IDs
+   ul <- recoObj$usrLookup
+   il <- recoObj$itmLookup
+   testSet[,1] <- as.integer(ul[as.character(testSet[,1])])
+   testSet[,2] <- as.integer(il[as.character(testSet[,2])])
+  
+   if (hasCovs) testCovs <- as.matrix(testSet[,-(1:2)])
+
    for(i in 1:nrow(testSet)){
       j <- testSet[i,1]
       k <- testSet[i,2]
       # is user or item not in the dataset?; if so, NA
-      ## if(j < nrow(p) || k < nrow(q)) 
-      if(j <= nrow(p) && k <= nrow(q)) {
+      if (is.na(j) || is.na(k)) {
+         pred[i] <- NA
+      } else {
          tmp <- 0
          if (hasCovs) {
             tmp <- c(1,testCovs[i,]) %*% covCoefs + minResid
          }
          pred[i] <- p[j,] %*% q[k,] + tmp
-      } else
-         pred[i] <- NA
+      } 
    }
    pred
 }
