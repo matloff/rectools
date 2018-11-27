@@ -32,8 +32,9 @@
 
 #    origData: training set, object of class 'usrData', a list of
 #              objects of class 'usrDatum' (see file findUsrItmData.R)
-#    newData: data point (just one in current code) to be predicted, 
-#             object of class 'usrDatum'
+#    newData: data point to be predicted, object of class 'usrDatum'; 
+#             just a single point here, but have predictUsrDataMany()
+#             later below
 #    newItem: ID of the item rating to be predicted for the 
 #             user in newData
 #    wtcovs: weight to put on covariates; NULL if no covs
@@ -109,8 +110,9 @@ predict.usrData <- function(origData,newData,newItem,
    # number of neighbours is used
    findKnghbourRtng <- function(ki){
      ki <- min(ki, length(cosines))
-     # nearby is a vector containing the indices of the ki closest neighbours
-     nearby <- order(cosines,decreasing=FALSE)[1:ki]
+     # nearby is a vector containing the indices of the ki 
+     # most similar neighbours
+     nearby <- order(cosines,decreasing=TRUE)[1:ki]
      mean(as.numeric(found[2, nearby]))
    }
    sapply(k, findKnghbourRtng)
@@ -155,5 +157,24 @@ testCos <- function()
        c(1, 6, 5),c(1,2,1),c(1,1,5))
     ud <- formUserData(rts)
     print(predict(ud,ud[['r']],3,1))  # should print 5
+}
+
+# temporary solution to the problem of predict.usrData predicting only
+# one data point at a time
+
+#  origData,k,wtcovs,wtcovs:  see predict.usrData() above
+#  newDataMany: a vector of user IDs (must have an entry in origData)
+#  newItemMany: a vector of item IDs (must be in origData)
+
+predictUsrDataMany <- function(origData,newDataMany,newItemMany,
+      k,wtcovs=NULL,wtcats=NULL) 
+{
+   nNew <- length(newDataMany)
+   preds <- vector(length = nNew)
+   for (i in 1:nNew) {
+      origDataEntry <- origData[[as.character(newDataMany[i])]]
+      preds[i] <- predict.usrData(origData,origDataEntry,newItemMany[i],k=k)
+   }
+   preds
 }
 
