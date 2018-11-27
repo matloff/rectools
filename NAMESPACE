@@ -7,6 +7,7 @@ S3method(predict,ydotsMMpar)
 export(trainMM,trainMLE,trainReco,predict.ydotsMM,plot.ydotsMM,
        predict.RecoS3,
        predict.ydotsMLE,predict.ydotsMLEpar,explore,
+       predictUsrDataMany,
        formUserData,predict.usrData,cosDist,testFormUserData, testCos,
        xvalMM,xvalMLE,xvalCos,deleteNewIDs,xvSmallNi, 
        xvalRegYdots,
