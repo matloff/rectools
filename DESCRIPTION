@@ -10,7 +10,7 @@ Author@R:
     person("Melanie" "Zhang", role-c("aut"), email="mlnzhang@ucdavis.edu")
    )
 Maintainer: Norm Matloff <nsmmatloff@ucdavis.edu>
-Date: 11/24/2018
+Date: 11/26/2018
 Title: Advanced Recommender System
 Description: Toolbox for recommender systems, including novel methods,
    plotting, parallel computation, and so on. 
