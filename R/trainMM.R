@@ -83,9 +83,21 @@ trainMM <- function(ratingsIn)
      cmd <- paste('lmout <- lm(', nms[3],
                ' ~ .,data=ratingsIn[,-(1:2)])', sep='')
      eval(parse(text=cmd))
-     xmeans <- function(uirowgrp) colMeans(ratingsIn[uirowgrp,-(1:3),drop=FALSE])
-     Xi. <- t(sapply(userRowGrps,xmeans))
-     X.j <- t(sapply(itemRowGrps,xmeans))
+     xmeans <- 
+        function(uirowgrp) colMeans(ratingsIn[uirowgrp,-(1:3),drop=FALSE])
+     nCovs <- ncol(ratingsIn) - 3
+     Xi. <- sapply(userRowGrps,xmeans)
+     if (nCovs == 1)  {
+        Xi. <- matrix(Xi.,nrow=1)
+        row.names(Xi.) <- names(ratingsIn)[4]
+     }
+     Xi. <- t(Xi.) 
+     X.j <- sapply(itemRowGrps,xmeans)
+     if (nCovs == 1)  {
+        X.j <- matrix(X.j,nrow=1)
+        row.names(X.j) <- names(ratingsIn)[4]
+     }
+     X.j <- t(X.j)
      predsa <- predict(lmout,as.data.frame(Xi.))
      predsb <- predict(lmout,as.data.frame(X.j))
   } else {
