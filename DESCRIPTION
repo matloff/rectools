@@ -14,7 +14,7 @@ Date: 11/26/2018
 Title: Advanced Recommender System
 Description: Toolbox for recommender systems, including novel methods,
    plotting, parallel computation, and so on. 
-Depends: partools
+Depends: partools, regtools
 Suggests: recosystem, polyreg, shiny, lme4
 LazyLoad: no
 ByteCompile: yes
