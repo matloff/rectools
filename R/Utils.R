@@ -47,12 +47,12 @@ getInstEval <- function()  {
    gassign('ivl','ivl')
 }
 
-# get the MovieLens 100K evaluation data, and set it up, including
-# covariates
+# this builds the iextended ML100K dataset, including the raw data but
+# then adding in the covariates
 
-# if needDownload, then download will be done; datadir is the directory
-# containing the data, assumed by default to be in the current working
-# directory
+# we need files such as u.data in the directory 'datadir'; either they
+# are already there, or if not needDownload = TRUE, the dat is
+# downloaded or unzipped to the 'ml-100k' in the current directory
 
 getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
    if (needDownload) {
@@ -66,11 +66,13 @@ getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
    setwd(datadir)
    ud <- read.table('u.data',header=F,sep='\t')  
    uu <- read.table('u.user',header=F,sep='|')  
-   ui <- read.table('u.item',header=F,sep='|')  
+   # ui <- read.table('u.item',header=F,sep='|')  
+   movs <- read.table('u.item',sep='|')
+   ui <- movs[,c(1,6:24)]
    setwd(currdir) # follow the trail back 
    ud <- ud[,-4]   # remove timestamp, leaving user, item, rating  
    uu <- uu[,1:3]  # user, age, gender  
-   ui <- ui[,c(1,6:24)]  # item num, genres  
+   # ui <- ui[,c(1,6:24)]  # item num, genres  
    names(ud) <- c('user','item','rating')  
    names(uu) <- c('user','age','gender')  
    names(ui)[1] <- 'item'  
