@@ -173,14 +173,7 @@ factorToDummies <- function(f,prfx=NULL) {
 # columns are dummies on item categories, e.g. genres for
 # films or music; outputs a data frame
 
-### NEEDS WORK
-
-## Browse[2]> z
-##      [,1] [,2] [,3]
-##      [1,]    5    0    1
-##      [2,]    2    0    1
-##      [3,]    5    0    1
-
+### WORK IN PROGRESS
 
 getCatPrefs <- function(usrInfo)
 {
@@ -197,3 +190,15 @@ getCatPrefs <- function(usrInfo)
    rownames(res) <- names(usrRowGrps)
    res
 }
+
+getMovieLensGenres <- function() 
+{
+   movs <- read.table('u.item',sep='|')
+   movs[,c(1,6:24)]
+}
+
+getMovieLensUserPrefs <- function() 
+{
+
+}
+
