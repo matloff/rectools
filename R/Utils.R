@@ -54,6 +54,18 @@ getInstEval <- function()  {
 # are already there, or if not needDownload = TRUE, the dat is
 # downloaded or unzipped to the 'ml-100k' in the current directory
 
+# return value is a data frame with the following columns:
+
+# > names(w)
+#  [1] "user"      "item"      "rating"    "timestamp" "age"       "gender"   
+#  [7] "occ"       "zip"       "userMean"  "Nuser"     "G1"        "G2"       
+# [13] "G3"        "G4"        "G5"        "G6"        "G7"        "G8"       
+# [19] "G9"        "G10"       "G11"       "G12"       "G13"       "G14"      
+# [25] "G15"       "G16"       "G17"       "G18"       "G19"       "itemMean" 
+# [31] "Nitem"
+
+# here G1, G2 etc. are the genres
+
 getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
    if (needDownload) {
       # 5 Mb
@@ -64,24 +76,38 @@ getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
    }
    currdir <- getwd()  # leave a trail of bread crumbs
    setwd(datadir)
+   on.exit(setwd(currdir))
+
+   # make matrices ud, uu and ui, for the main ratings data, user info
+   # an item info
+
    ud <- read.table('u.data',header=F,sep='\t')  
-   uu <- read.table('u.user',header=F,sep='|')  
-   # ui <- read.table('u.item',header=F,sep='|')  
-   movs <- read.table('u.item',sep='|')
-   ui <- movs[,c(1,6:24)]
+   colnames(ud) <- c('user','item','rating','timestamp')
+   ud <- as.data.frame(ud)
+
+   uu <- read.table('u.user',header=F,sep='|',stringsAsFactors=TRUE)  
+   ur <- split(ud[,3],ud[,1])  # ratings by user
+   uu <- cbind(uu,sapply(ur,mean))
+   uu <- cbind(uu,sapply(ur,length))
+   colnames(uu) <- c('user','age','gender','occ','zip','userMean','Nuser')
+
+   # reading u.item is tricky, with some problematic records etc.;
+   # fortunately, we only need the last 19 fields
+   z <- readLines('u.item')
+   zs <- strsplit(z,'|',fixed=TRUE)  # splits to single characters
+   zgl <- lapply(zs,function(charvec) charvec[6:24])  # get the genre dummies
+   zgls <- t(sapply(zgl,as.integer))  # create matrix of genres
+   ui <- cbind(1:nrow(zgls),zgls)
+   ir <- split(ud[,3],ud[,2])  # ratings by item
+   ui <- cbind(ui,sapply(ir,mean))
+   ui <- cbind(ui,sapply(ir,length))
+   colnames(ui) <- c('item',paste('G',1:19,sep=''),'itemMean','Nitem')
+
    setwd(currdir) # follow the trail back 
-   ud <- ud[,-4]   # remove timestamp, leaving user, item, rating  
-   uu <- uu[,1:3]  # user, age, gender  
-   # ui <- ui[,c(1,6:24)]  # item num, genres  
-   names(ud) <- c('user','item','rating')  
-   names(uu) <- c('user','age','gender')  
-   names(ui)[1] <- 'item'  
-   names(ui)[-1] <- gsub('V','GNR',names(ui)[-1]) # GNR = genre  
-   uu$gender <- as.integer(uu$gender == 'M')  
    uduu <- merge(ud,uu)
    uduuui <- merge(uduu,ui)
-   gassign('uduu','uduu')
-   gassign('uduuui','uduuui')
+   # this ends up in (item,user) order, whereas we need the opposite
+   uduuui[,c(2,1,3:ncol(uduuui))]
 }
 
 ############################ global assignment #######################
