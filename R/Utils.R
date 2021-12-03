@@ -66,7 +66,7 @@ getInstEval <- function()  {
 
 # here G1, G2 etc. are the genres
 
-getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
+getML100K <- function(needDownload=FALSE)  {
    if (needDownload) {
       # 5 Mb
       download.file(
@@ -75,6 +75,7 @@ getML100K <- function(needDownload=FALSE,datadir='./ml-100k')  {
       unzip('ml-100k.zip')
    }
    currdir <- getwd()  # leave a trail of bread crumbs
+   datadir <- 'ml-100k'  # easier to hard code
    setwd(datadir)
    on.exit(setwd(currdir))
 
