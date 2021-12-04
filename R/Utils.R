@@ -109,7 +109,11 @@ getML100K <- function(needDownload=FALSE)
    uduu <- merge(ud,uu)
    uduuui <- merge(uduu,ui)
    # this ends up in (item,user) order, whereas we need the opposite
-   uduuui[,c(2,1,3:ncol(uduuui))]
+   outdf <- uduuui[,c(2,1,3:ncol(uduuui))]
+   attr(outdf,'useritemCovs') <- c(4,4)
+   attr(outdf,'userCovs') <- c(5,10)
+   attr(outdf,'itemCovs') <- c(11,31)
+   outdf
 }
 
 ############################ global assignment #######################
