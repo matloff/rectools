@@ -66,7 +66,8 @@ getInstEval <- function()  {
 
 # here G1, G2 etc. are the genres
 
-getML100K <- function(needDownload=FALSE)  {
+getML100K <- function(needDownload=FALSE)  
+{
    if (needDownload) {
       # 5 Mb
       download.file(
