@@ -15,7 +15,7 @@ export(trainMM,trainMLE,trainReco,predict.ydotsMM,plot.ydotsMM,
        getUINN,RStoReg,
        getCovCols,
        getTrainSet,getTestSet,trainReco,xvalReco,
-       focusGrp, buildMatrix, getCatPrefs,
+       focusGrp, buildMatrix, asMatrix, getCatPrefs,
        ratingness,covratingness,
        gassign,getInstEval,getML100K)
 
