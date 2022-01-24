@@ -31,20 +31,11 @@ getInstEval <- function()  {
    ivl <- InstEval
    # make correct format, choose 
    ivl <- ivl[,c(1,2,7,3:6)]
-   # create dummy variables in place of dept
-   dms <- factorToDummies(ivl$dept,'dpt')
-   dms <- as.data.frame(dms)
-   dms$dpt2 <- NULL
-   ivl$dept <- NULL
-   ivl <- cbind(ivl,dms)
-   # convert from factors
-   ivl$s <- as.numeric(as.character(ivl$s))
-   ivl$d <- as.numeric(as.character(ivl$d))
+   # convert from factor
    ivl$y <- as.numeric(ivl$y)
-   ivl$service <- as.numeric(ivl$service == 1)
    ivl$studage <- as.numeric(ivl$studage)
    ivl$lectage <- as.numeric(ivl$lectage)
-   gassign('ivl','ivl')
+   ivl
 }
 
 # this builds the iextended ML100K dataset, including the raw data but
