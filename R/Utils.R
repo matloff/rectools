@@ -23,6 +23,16 @@ covratingness <- function(ratingsIn,splitCol) {
 
 ############  prep for some specific example data sets ##############
 
+$ House Voting data: change question marks to NAs
+
+getHouseVoting <- function() 
+{
+   hv <- read.csv('https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data',header=F)
+   f <- function(cl) gsub('\\?',NA,cl)
+   hv <- sapply(hv,f)
+   as.data.frame(hv)
+}
+
 # get the instructor evaluation data, and set it up, including
 # covariates
 
