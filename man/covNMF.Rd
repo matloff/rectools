@@ -1,4 +1,4 @@
-\name{buildMatrix,covNMF,getPreds,getNMF}
+\name{covNMF,getPreds,getNMF}
 \alias{covNMF}
 \alias{getPreds}
 \alias{getNMF}

@@ -1,5 +1,6 @@
-\name{buildMatrix}
-\alias{buildMatrix,toUserItemRatings}
+\name{buildMatrix,toUserItemRatings}
+\alias{buildMatrix}
+\alias{toUserItemRatings}
 \title{Build Ratings Matrix}
 
 \description{
