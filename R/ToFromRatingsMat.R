@@ -23,22 +23,34 @@ buildMatrix <- function(ratingsIn,NAval=0){
 
 # arguments:
 
-#    idCol:  input row ID
 #    ratMat:  ratings matrix, users in rows, items in cols, NAs where
 #             unavailable 
-#    valCols:  values to make 'long'; column numbers or column names
-#    sideCols:  side information; column numbers or column names
 
-ToUserItemRatings <- function(ID,ratMat,valCols,sideCols) 
+# value:  the (user ID, # item ID, rating) data frame; user and item IDs
+# come from row and column numbers in the ratings matrix
+
+
+toUserItemRatings <- function(ratMat) 
 {
-   # could use various reshape versions, but making it explicit will
+   # might use various reshape versions, but making it explicit will
    # allow extensions
 
-   doOneRow <- function(rw)   # do one row of the input data
-   {
-      id <- rw[1,idCol]
-      vals <- rw[,valCols]
-      side <- rw[,sideCols]
-   }
+   n <- nrow(ratMat)
+   m <- ncol(ratMat)
+   outDF <- NULL
 
+   for (i in 1:n) {
+      rw <- ratMat[i,]
+      nonNA <- which(!is.na(rw))
+      nNonNA <- length(nonNA)
+      if (nNonNA > 0) {
+         toAppend <- data.frame(
+            userID=rep(i,nNonNA),
+            itemID=nonNA,
+            ratings=rw[nonNA])
+         outDF <- rbind(outDF,toAppend)
+      }
+   }
+   outDF
 }
+

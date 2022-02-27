@@ -23,7 +23,7 @@ covratingness <- function(ratingsIn,splitCol) {
 
 ############  prep for some specific example data sets ##############
 
-$ House Voting data: change question marks to NAs
+# House Voting data: change question marks to NAs
 
 getHouseVoting <- function() 
 {
