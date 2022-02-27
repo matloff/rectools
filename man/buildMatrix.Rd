@@ -22,6 +22,7 @@ item j by user i.
 
 The \code{toUserItemRatings} function converts in the opposite
 direction.
+}
 
 \author{
 	Pooja Rajkumar, Norm Matloff
