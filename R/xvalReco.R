@@ -24,19 +24,20 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
   testIdxs = sample(1:nrow(ratingsIn),holdout)
   trainSet = ratingsIn[-testIdxs,]
   testSet = ratingsIn[testIdxs,]
+  testSetX = ratingsIn[testIdxs,-3]
   if(is.null(cls)){
      trainTime <- system.time(
         res <- trainReco(trainSet,rnk=rnk,nmf=nmf)
      )
      predTime <- system.time(
-        totalPreds <- predict(res,testSet)
+        totalPreds <- predict(res,testSetX)
      )
   } else {
      trainTime <- system.time(
         res <- trainRecoPar(trainSet,rnk=rnk,nmf=nmf,cls=cls)
      )
      predTime <- system.time(
-        totalPreds <- predict(res,testSet,cls)
+        totalPreds <- predict(res,testSetX,cls)
      )
   }
   if (printTimes) {
@@ -80,3 +81,4 @@ xvalReco <- function(ratingsIn,binaryCase=FALSE,holdout=10000,cls=NULL,
   result
 }
  
+xvr <- xvalReco
