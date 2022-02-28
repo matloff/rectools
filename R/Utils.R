@@ -28,9 +28,15 @@ covratingness <- function(ratingsIn,splitCol) {
 getHouseVoting <- function() 
 {
    hv <- read.csv('https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data',header=F)
-   f <- function(cl) gsub('\\?',NA,cl)
-   hv <- sapply(hv,f)
-   as.data.frame(hv)
+   party <- hv$V1
+   hv <- hv[,-1]
+   hv[hv == '?'] <- NA
+   hv[hv == 'n'] <- 0
+   hv[hv == 'y'] <- 1
+   hv <- as.data.frame(hv)
+   names(hv) <- paste0('Bill',1:16)
+   hv$party <- party
+   hv
 }
 
 # get the instructor evaluation data, and set it up, including
