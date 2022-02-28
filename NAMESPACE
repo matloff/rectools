@@ -17,6 +17,7 @@ export(trainMM,trainMLE,trainReco,predict.ydotsMM,plot.ydotsMM,
        getTrainSet,getTestSet,trainReco,xvalReco,
        focusGrp, buildMatrix, asMatrix, getCatPrefs,
        ratingness,covratingness,
-       gassign,getInstEval,getML100K,getHouseVoting,toUserItemRatings)
+       gassign,getInstEval,getML100K,getHouseVoting,
+       toRatingsMatrix,toUserItemRatings)
 
 
