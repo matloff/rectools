@@ -36,6 +36,8 @@ getHouseVoting <- function()
    hv <- as.data.frame(hv)
    names(hv) <- paste0('Bill',1:16)
    hv$party <- party
+   for (i in 1:16) hv[,i] <- as.numeric(hv[,i])
+   hv[,17] <- as.factor(hv[,17])
    hv
 }
 
