@@ -48,7 +48,7 @@
 #    predicted ratings for newData for the item newItem
 
 predict.usrData <- function(origData,newData,newItem,
-      k,wtcovs=NULL,wtcats=NULL) 
+      k,wtcovs=NULL,wtcats=NULL,leave1Out=TRUE) 
 {
    # check that newData has the covs and cats if and only if the
    # training data did
@@ -89,6 +89,9 @@ predict.usrData <- function(origData,newData,newItem,
    
    # we need to get rid of the users who didn't rate newItem
    whoHasIt <- which(!is.na(found[1,]))
+   if (leave1Out && newData %in% whoHasIt) {
+      whoHasIt <- whoHasIt[-as.integer(newData$userID)]
+   }
    if (is.null(whoHasIt) | length(whoHasIt) == 0) 
       return(NA)  # no one rated this item
    origDataRatedNI <- origData[whoHasIt]
@@ -117,6 +120,8 @@ predict.usrData <- function(origData,newData,newItem,
    }
    sapply(k, findKnghbourRtng)
 }
+
+prdusrdata <- predict.usrData
 
 # find cosine distance between x and y, objects
 # of 'usrData' class
