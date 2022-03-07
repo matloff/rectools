@@ -75,22 +75,22 @@ toUserItemRatings <- function(ratMat,rowColNames=FALSE)
    outDF <- NULL
 
    # determine row, col names; create them if they're not there
-   uns <- rownames(ratMat)
-   ins <- colnames(ratMat) 
+   rns <- rownames(ratMat)
+   cns <- colnames(ratMat) 
 
-   unsF <- as.factor(uns)
-   insF <- as.factor(ins)
-   unsL <- levels(unsF)
-   insL <- levels(insF)
+   # unsF <- as.factor(uns)
+   # insF <- as.factor(ins)
+   # unsL <- levels(unsF)
+   # insL <- levels(insF)
 
    for (i in 1:n) {
-      rw <- ratMat[i,]
+      rw <- as.numeric(ratMat[i,])
       nonNA <- which(!is.na(rw))
       nNonNA <- length(nonNA)
       if (nNonNA > 0) {
          toAppend <- data.frame(
-            userID=rep(unsL[i],nNonNA),
-            itemID=insL[nonNA],
+            userID=rep(rns[i],nNonNA),
+            itemID=cns[nonNA],
             ratings=rw[nonNA])
          outDF <- rbind(outDF,toAppend)
       }
