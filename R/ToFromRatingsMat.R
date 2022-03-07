@@ -96,6 +96,9 @@ toUserItemRatings <- function(ratMat,rowColNames=FALSE)
       }
    }
 
+   outDF[,1] <- as.factor(outDF[,1])
+   outDF[,2] <- as.factor(outDF[,2])
+
    outDF
 }
 
