@@ -9,6 +9,8 @@ toRatingsMatrix <- function(ratingsIn,NAval=NA){
    if(!is.factor(users) || !is.factor(items)) 
       stop('user and item IDs must be R factors')
    ratings = ratingsIn[,3]
+   users <- toTrueLevels(users)
+   items <- toTrueLevels(items)
    newMatrix = matrix(NAval, 
           nrow = length(levels(users)), ncol = length(levels(items)))
    levelsU <- levels(users)
@@ -21,6 +23,15 @@ toRatingsMatrix <- function(ratingsIn,NAval=NA){
        newMatrix[users[rowNum],items[rowNum]] <- ratings[rowNum] 
    }
    newMatrix
+}
+
+# factor f may be a subset of an original; make a new factor only with
+# the levels in f
+
+toTrueLevels <- function(f) 
+{
+   fChar <- as.character(f)
+   as.factor(fChar)
 }
 
 buildMatrix <- function(ratingsIn,NAval=0){
@@ -64,38 +75,23 @@ toUserItemRatings <- function(ratMat,rowColNames=FALSE)
    outDF <- NULL
 
    # determine row, col names; create them if they're not there
-   rns <- rownames(ratMat)
-   cns <- colnames(ratMat) 
-   if (length(rns) == 0) {
-      inputHasRownames <- FALSE
-      if (rowColNames) rns <- 1:n
-   } else inputHasRownames <- TRUE
-   if (length(cns) == 0) {
-      inputHasColnames <- FALSE
-      if (rowColNames) cns <- 1:m
-   } else inputHasColnames <- TRUE
+   uns <- rownames(ratMat)
+   ins <- colnames(ratMat) 
 
-   rnsF <- as.factor(rns)
-   cnsF <- as.factor(cns)
-   rnsL <- levels(rnsF)
-   cnsL <- levels(cnsF)
+   unsF <- as.factor(uns)
+   insF <- as.factor(ins)
+   unsL <- levels(unsF)
+   insL <- levels(insF)
 
    for (i in 1:n) {
       rw <- ratMat[i,]
       nonNA <- which(!is.na(rw))
       nNonNA <- length(nonNA)
       if (nNonNA > 0) {
-         if (rowColNames) {
-            toAppend <- data.frame(
-               userID=rep(rnsL[i],nNonNA),
-               itemID=cnsL[nonNA],
-               ratings=rw[nonNA])
-         } else {
-            toAppend <- data.frame(
-               userID=rep(i,nNonNA),
-               itemID=nonNA,
-               ratings=rw[nonNA])
-         }
+         toAppend <- data.frame(
+            userID=rep(unsL[i],nNonNA),
+            itemID=insL[nonNA],
+            ratings=rw[nonNA])
          outDF <- rbind(outDF,toAppend)
       }
    }
