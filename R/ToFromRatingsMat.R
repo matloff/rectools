@@ -2,6 +2,7 @@
 # form ratings matrix from the usual (user ID, item ID, rating) data
 
 toRatingsMatrix <- function(ratingsIn,NAval=NA){
+
    # will now require that the IDs be factors
    
    users = ratingsIn[,1]
@@ -35,6 +36,7 @@ toTrueLevels <- function(f)
 }
 
 buildMatrix <- function(ratingsIn,NAval=0){
+   stop('use toUserItemRatings()')
    # deal with possible factors
    dmax <- function(d) {
       if (is.factor(d)) return(length(levels(d)))
@@ -57,15 +59,12 @@ buildMatrix <- function(ratingsIn,NAval=0){
 # arguments:
 
 #    ratMat:  ratings matrix, users in rows, items in cols, NAs where
-#       unavailable 
-#    rowColNames:  if TRUE, use row, col names of ratMat in output 
-#       userID, itemID columns; else, use row, col numbers in these
-#       output columns
+#       unavailable; must have row and column names 
 
 # value:  the (user ID, # item ID, rating) data frame; user and item IDs
-# come from row and column numbers in the ratings matrix
+# come from row and column names in the ratings matrix
 
-toUserItemRatings <- function(ratMat,rowColNames=FALSE) 
+toUserItemRatings <- function(ratMat) 
 {
    # might use various reshape versions, but making it explicit will
    # allow extensions
@@ -77,6 +76,9 @@ toUserItemRatings <- function(ratMat,rowColNames=FALSE)
    # determine row, col names; create them if they're not there
    rns <- rownames(ratMat)
    cns <- colnames(ratMat) 
+
+   if(length(rns) == 0 || !length((cns))) 
+      stop('input must have row and column names')
 
    # unsF <- as.factor(uns)
    # insF <- as.factor(ins)
